@@ -1,0 +1,11 @@
+package ru.stm.shcherbinki3.dao;
+
+import ru.stm.shcherbinki3.model.Ticket;
+
+import java.util.List;
+
+public interface TicketDao {
+
+    List<Ticket> findAllByUserId(Long userId);
+
+}

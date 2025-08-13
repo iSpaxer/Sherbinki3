@@ -1,16 +1,16 @@
 services:
-  sherbinki3-service:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: sherbinki3-service
-    image: sherbinki3-service:latest
-    env_file:
-      - environment/postgres.env
-    ports:
-      - 8080:8080
-    depends_on:
-      - postgres
+#  sherbinki3-service:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    container_name: sherbinki3-service
+#    image: sherbinki3-service:latest
+#    env_file:
+#      - environment/postgres.env
+#    ports:
+#      - 8080:8080
+#    depends_on:
+#      - postgres
 
   postgres:
     image: postgres:16.1
