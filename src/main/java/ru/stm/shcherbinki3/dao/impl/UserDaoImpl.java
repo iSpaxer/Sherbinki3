@@ -1,4 +1,4 @@
-package ru.stm.shcherbinki3.dao;
+package ru.stm.shcherbinki3.dao.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -10,6 +10,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
+import ru.stm.shcherbinki3.dao.UserDao;
 import ru.stm.shcherbinki3.model.User;
 import ru.stm.shcherbinki3.model.type.RecordStatus;
 import ru.stm.shcherbinki3.util.exception.BadRequestException;
@@ -42,10 +43,15 @@ public class UserDaoImpl implements UserDao {
     @Override
     public Optional<User> findByIdAndRecordStatus(Long id, RecordStatus recordStatus) {
         String sql = """
-                SELECT id, email, password, name, lastname, patronymic FROM %s WHERE id = :id and record_status = :status
+                SELECT id, email, password, name, lastname, patronymic FROM %s
+                WHERE id = :id AND record_status = :status
                 """.formatted(TABLE_NAME);
         Map<String, Object> params = Map.of("id", id, "status", recordStatus.name());
 
+        return doRequestInBd(sql, params);
+    }
+
+    private Optional<User> doRequestInBd(String sql, Map<String, Object> params) {
         try {
             return Optional.of(namedParameterJdbcTemplate.queryForObject(
                     sql,
@@ -53,8 +59,18 @@ public class UserDaoImpl implements UserDao {
                     new BeanPropertyRowMapper<>(User.class)
             ));
         } catch (EmptyResultDataAccessException e) {
-            return Optional.empty(); // throw new ResourceNotFoundException("User not found with id: " + id);
+            return Optional.empty();
         }
+    }
+
+    @Override
+    public Optional<User> findByEmailAndRecordStatus(String email, RecordStatus recordStatus) {
+        String sql = """
+                SELECT id, email, password, name, lastname, patronymic FROM %s
+                WHERE email = :email AND record_status = :status
+                """.formatted(TABLE_NAME);
+        Map<String, Object> params = Map.of("email", email, "status", recordStatus.name());
+        return doRequestInBd(sql, params);
     }
 
     @Override
@@ -113,4 +129,5 @@ public class UserDaoImpl implements UserDao {
 //            throw new BadRequestException("User does not exist.");
 //        }
     }
+
 }
