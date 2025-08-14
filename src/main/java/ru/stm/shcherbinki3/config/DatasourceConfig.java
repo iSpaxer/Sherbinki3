@@ -13,16 +13,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public class DatasourceConfig {
 
     @Bean
-    @Primary
-    @ConfigurationProperties("app.datasource")
-    public HikariDataSource hikariDataSource() {
-        return DataSourceBuilder
-                .create()
-                .type(HikariDataSource.class)
-                .build();
-    }
-
-    @Bean
     public JdbcTemplate jdbcTemplate(HikariDataSource hikariDataSource) {
         return new JdbcTemplate(hikariDataSource);
     }

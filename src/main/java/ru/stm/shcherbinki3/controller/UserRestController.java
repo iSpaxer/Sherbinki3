@@ -23,7 +23,7 @@ public class UserRestController {
 
     @PostMapping("/create")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<?> createUser(@Valid UserDto dto) {
+    public ResponseEntity<?> createUser(@Valid @RequestBody UserDto dto) {
         userService.create(dto);
         return ResponseEntity.ok()
                 .build();
@@ -38,33 +38,32 @@ public class UserRestController {
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<UserDto> updateUser(UserDto dto) {
-        userService.update(dto);
-        return ResponseEntity.ok()
-                .build();
+        return ResponseEntity.ok(userService.update(dto));
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<Void> deleteUser() {
-        return null;
+    public ResponseEntity<String> deleteUser(@PathVariable Long id) {
+        userService.deleteById(id);
+        return ResponseEntity.ok("Account would have been deleted");
     }
-
-    // todo Pageable
-    @GetMapping("/tickets")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<List<TicketDto>> getTickets(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime travelDate,
-            @RequestParam(required = false) String departure,
-            @RequestParam(required = false) String destination,
-            @RequestParam(required = false) String carrierName,
-            @RequestParam(required = false) boolean active,
-            @RequestParam(required = false) boolean expired,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(
-                userService.getTickets(travelDate, departure, destination, carrierName, active, expired, page, size));
-
-    }
+//
+//    // todo Pageable
+//    @GetMapping("/tickets")
+//    @ResponseStatus(HttpStatus.OK)
+//    public ResponseEntity<List<TicketDto>> getTickets(
+//            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime travelDate,
+//            @RequestParam(required = false) String departure,
+//            @RequestParam(required = false) String destination,
+//            @RequestParam(required = false) String carrierName,
+//            @RequestParam(required = false) boolean active,
+//            @RequestParam(required = false) boolean expired,
+//            @RequestParam(defaultValue = "0") int page,
+//            @RequestParam(defaultValue = "10") int size) {
+//        return ResponseEntity.ok(
+//                userService.getTickets(travelDate, departure, destination, carrierName, active, expired, page, size));
+//
+//    }
 
 
 

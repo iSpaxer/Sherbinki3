@@ -15,18 +15,18 @@ import ru.stm.shcherbinki3.service.TicketService;
 @RequestMapping("/api/v1/ticket")
 public class TicketRestController {
 
-    private final TicketService ticketService;
-
-    @PostMapping("/buy")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<TicketDto> buyTicket(TicketDto dto) { // todo мне кажется я не ticketDto должен принимать
-        return ResponseEntity.ok(ticketService.butTicket(dto, authUser));
-    }
-
-    @PostMapping("/refund")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<TicketDto> refundTicket(TicketDto dto) { // todo вот тут 100% принимает билет
-
-    }
+//    private final TicketService ticketService;
+//
+//    @PostMapping("/buy")
+//    @ResponseStatus(HttpStatus.OK)
+//    public ResponseEntity<TicketDto> buyTicket(TicketDto dto) { // todo мне кажется я не ticketDto должен принимать
+//        return ResponseEntity.ok(ticketService.butTicket(dto, authUser));
+//    }
+//
+//    @PostMapping("/refund")
+//    @ResponseStatus(HttpStatus.OK)
+//    public ResponseEntity<TicketDto> refundTicket(TicketDto dto) { // todo вот тут 100% принимает билет
+//
+//    }
 
 }

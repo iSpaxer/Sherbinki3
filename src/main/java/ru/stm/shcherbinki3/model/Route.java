@@ -25,8 +25,6 @@ public class Route {
 
     private List<Ticket> tickets;
 
-    private LocalDateTime travelDateTime;
-
     @NotNull(message = "Departure cannot be null")
     @Size(min = 2, max = 100, message = "Departure must be between 2 and 100 characters")
     private String departure;

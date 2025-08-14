@@ -1,14 +1,13 @@
 package ru.stm.shcherbinki3.dao;
 
-import org.springframework.stereotype.Repository;
 import ru.stm.shcherbinki3.model.User;
-
-import java.util.Optional;
+import ru.stm.shcherbinki3.model.type.RecordStatus;
 
 public interface UserDao {
     User findById(Long id);
-    void create(User user);
-    void update(User user);
+    User findByIdAndRecordStatus(Long id, RecordStatus recordStatus);
+    User create(User user);
+    User update(User user);
     void deleteById(Long id);
 
 }

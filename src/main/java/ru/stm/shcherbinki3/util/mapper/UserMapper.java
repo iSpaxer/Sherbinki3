@@ -12,10 +12,9 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
-    UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
-
     @Mapping(target = "tickets", ignore = true)
     @Mapping(target = "carrier", ignore = true)
+    @Mapping(target = "recordStatus", ignore = true)
     User toEntity(UserDto dto);
 
     @Mapping(target = "id", source = "id")
@@ -27,5 +26,6 @@ public interface UserMapper {
 
     @Mapping(target = "tickets", ignore = true)
     @Mapping(target = "carrier", ignore = true)
+    @Mapping(target = "recordStatus", ignore = true)
     void updateEntityFromDto(UserDto dto, @MappingTarget User entity);
 }
