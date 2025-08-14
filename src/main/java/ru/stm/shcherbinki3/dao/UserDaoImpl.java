@@ -13,12 +13,8 @@ import org.springframework.stereotype.Repository;
 import ru.stm.shcherbinki3.model.User;
 import ru.stm.shcherbinki3.model.type.RecordStatus;
 import ru.stm.shcherbinki3.util.exception.BadRequestException;
-import ru.stm.shcherbinki3.util.exception.ResourceNotFoundException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Repository
 public class UserDaoImpl implements UserDao {
@@ -39,25 +35,25 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public User findById(Long id) {
+    public Optional<User> findById(Long id) {
         return findByIdAndRecordStatus(id, RecordStatus.ACTIVE);
     }
 
     @Override
-    public User findByIdAndRecordStatus(Long id, RecordStatus recordStatus) {
+    public Optional<User> findByIdAndRecordStatus(Long id, RecordStatus recordStatus) {
         String sql = """
                 SELECT id, email, password, name, lastname, patronymic FROM %s WHERE id = :id and record_status = :status
                 """.formatted(TABLE_NAME);
         Map<String, Object> params = Map.of("id", id, "status", recordStatus.name());
 
         try {
-            return namedParameterJdbcTemplate.queryForObject(
+            return Optional.of(namedParameterJdbcTemplate.queryForObject(
                     sql,
                     params,
                     new BeanPropertyRowMapper<>(User.class)
-            );
+            ));
         } catch (EmptyResultDataAccessException e) {
-            throw new ResourceNotFoundException("User not found with id: " + id);
+            return Optional.empty(); // throw new ResourceNotFoundException("User not found with id: " + id);
         }
     }
 
@@ -70,7 +66,7 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public User update(User user) {
+    public boolean update(User user) {
         Map<String, Object> params = new HashMap<>();
         StringBuilder sql = new StringBuilder("UPDATE %s SET".formatted(TABLE_NAME));
 
@@ -103,22 +99,18 @@ public class UserDaoImpl implements UserDao {
         sql.append(" WHERE id = :id AND record_status = 'ACTIVE'");
         params.put("id", user.getId());
 
-        int rowsAffected = namedParameterJdbcTemplate.update(sql.toString(), new MapSqlParameterSource(params));
-        if (rowsAffected == 0) {
-            throw new ResourceNotFoundException("User not found with id: " + user.getId());
-        }
-
-        return findById(user.getId());
+        return namedParameterJdbcTemplate.update(sql.toString(), new MapSqlParameterSource(params)) > 0;
     }
 
     @Override
-    public void deleteById(Long id) {
+    public boolean deleteById(Long id) {
         String sql = "UPDATE %s SET record_status = 'DELETED' WHERE id = :id AND record_status = 'ACTIVE'"
                 .formatted(TABLE_NAME);
         Map<String, Object> params = Map.of("id", id);
-        int rowsAffected = namedParameterJdbcTemplate.update(sql, new MapSqlParameterSource(params));
-        if (rowsAffected == 0) {
-            throw new BadRequestException("User does not exist.");
-        }
+        return namedParameterJdbcTemplate.update(sql, params) > 0;
+//        int rowsAffected = namedParameterJdbcTemplate.update(sql, new MapSqlParameterSource(params));
+//        if (rowsAffected == 0) {
+//            throw new BadRequestException("User does not exist.");
+//        }
     }
 }

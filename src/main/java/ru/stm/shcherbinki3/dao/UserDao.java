@@ -3,11 +3,13 @@ package ru.stm.shcherbinki3.dao;
 import ru.stm.shcherbinki3.model.User;
 import ru.stm.shcherbinki3.model.type.RecordStatus;
 
+import java.util.Optional;
+
 public interface UserDao {
-    User findById(Long id);
-    User findByIdAndRecordStatus(Long id, RecordStatus recordStatus);
+    Optional<User> findById(Long id);
+    Optional<User> findByIdAndRecordStatus(Long id, RecordStatus recordStatus);
     User create(User user);
-    User update(User user);
-    void deleteById(Long id);
+    boolean update(User user);
+    boolean deleteById(Long id);
 
 }

@@ -25,24 +25,14 @@ public class User {
     private List<Ticket> tickets; // oneToMany
     private Carrier carrier; // oneToOne
 
-    @NotNull(message = "Email cannot be null")
-    @Email(message = "Email must be a valid email address")
-    @Size(max = 255, message = "Email must be at most 255 characters")
     private String email;
 
-    @NotBlank(message = "Password cannot be null")
-    @Size(max = 255, message = "Password must be at most 255 characters")
     private String password;
 
-    @NotBlank(message = "Name cannot be null")
-    @Size(max = 120, message = "Name must be at most 120 characters")
     private String name;
 
-    @NotBlank(message = "Lastname cannot be null")
-    @Size(max = 120, message = "Lastname must be at most 120 characters")
     private String lastname;
 
-    @Size(max = 120, message = "Patronymic must be at most 120 charactersа по")
     private String patronymic;
 
     private RecordStatus recordStatus;
