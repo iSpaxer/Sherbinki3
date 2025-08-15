@@ -10,17 +10,16 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
+import ru.stm.shcherbinki3.dao.CarrierDao;
 import ru.stm.shcherbinki3.dao.UserDao;
 import ru.stm.shcherbinki3.model.User;
 import ru.stm.shcherbinki3.model.type.RecordStatus;
-import ru.stm.shcherbinki3.util.exception.BadRequestException;
 
 import java.util.*;
 
 @Repository
 public class UserDaoImpl implements UserDao {
 
-    public final String TABLE_NAME = "app_user";
     private final JdbcTemplate jdbcTemplate;
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     private final SimpleJdbcInsert simpleJdbcInsert;
@@ -36,14 +35,10 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public Optional<User> findById(Long id) {
-        return findByIdAndRecordStatus(id, RecordStatus.ACTIVE);
-    }
-
-    @Override
     public Optional<User> findByIdAndRecordStatus(Long id, RecordStatus recordStatus) {
         String sql = """
-                SELECT id, email, password, name, lastname, patronymic FROM %s
+                SELECT id, email, password, name, lastname, patronymic, record_status
+                FROM %s
                 WHERE id = :id AND record_status = :status
                 """.formatted(TABLE_NAME);
         Map<String, Object> params = Map.of("id", id, "status", recordStatus.name());
@@ -51,22 +46,11 @@ public class UserDaoImpl implements UserDao {
         return doRequestInBd(sql, params);
     }
 
-    private Optional<User> doRequestInBd(String sql, Map<String, Object> params) {
-        try {
-            return Optional.of(namedParameterJdbcTemplate.queryForObject(
-                    sql,
-                    params,
-                    new BeanPropertyRowMapper<>(User.class)
-            ));
-        } catch (EmptyResultDataAccessException e) {
-            return Optional.empty();
-        }
-    }
-
     @Override
     public Optional<User> findByEmailAndRecordStatus(String email, RecordStatus recordStatus) {
         String sql = """
-                SELECT id, email, password, name, lastname, patronymic FROM %s
+                SELECT id, email, password, name, lastname, patronymic, record_status
+                FROM %s
                 WHERE email = :email AND record_status = :status
                 """.formatted(TABLE_NAME);
         Map<String, Object> params = Map.of("email", email, "status", recordStatus.name());
@@ -124,10 +108,39 @@ public class UserDaoImpl implements UserDao {
                 .formatted(TABLE_NAME);
         Map<String, Object> params = Map.of("id", id);
         return namedParameterJdbcTemplate.update(sql, params) > 0;
-//        int rowsAffected = namedParameterJdbcTemplate.update(sql, new MapSqlParameterSource(params));
-//        if (rowsAffected == 0) {
-//            throw new BadRequestException("User does not exist.");
-//        }
+    }
+
+    @Override
+    public boolean hasCarrier(Long id) {
+        String sql = """
+                    SELECT
+                        CASE WHEN u.carrier_id IS NOT NULL AND c.record_status = 'ACTIVE'
+                         THEN true
+                         ELSE false
+                      END
+                    FROM %s u
+                    JOIN %s c ON c.id = u.carrier_id
+                    WHERE u.id = :userId
+                """.formatted(TABLE_NAME, CarrierDao.TABLE_NAME);
+
+        Boolean result = namedParameterJdbcTemplate.queryForObject(
+                sql,
+                Map.of("userId", id),
+                Boolean.class
+        );
+        return Boolean.TRUE.equals(result);
+    }
+
+    private Optional<User> doRequestInBd(String sql, Map<String, Object> params) {
+        try {
+            return Optional.ofNullable(namedParameterJdbcTemplate.queryForObject(
+                    sql,
+                    params,
+                    new BeanPropertyRowMapper<>(User.class)
+            ));
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
 }

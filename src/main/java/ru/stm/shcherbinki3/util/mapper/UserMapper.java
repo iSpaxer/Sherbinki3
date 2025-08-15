@@ -17,7 +17,7 @@ public interface UserMapper {
     @Mapping(target = "recordStatus", ignore = true)
     User toEntity(UserDto dto);
 
-    @Mapping(target = "id", source = "id")
+    @Mapping(target = "id", source = "id") // todo наверное нужно удалить
     UserDto toDto(User entity);
 
     List<User> toEntityList(List<UserDto> dtoList);

@@ -1,12 +1,13 @@
 package ru.stm.shcherbinki3.model;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.stm.shcherbinki3.model.type.RecordStatus;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -20,13 +21,18 @@ public class Carrier {
 
     private User owner; // oneToOne
 
-    private List<User> admins; // ManyToMany отдельная таблица
-
-    @Size(min = 2, max = 255, message = "Carrier name must be between 2 and 255 characters")
     private String name;
 
-    @Size(min = 11, max = 11, message = "Carrier phone must be exactly 11 characters")
     private String phone;
+
+    private RecordStatus recordStatus;
+
+    private LocalDateTime deletedDatetime;
+
+    @JsonIgnore
+    public boolean expiredDatetimeForSaveCarrier() {
+        return deletedDatetime != null && deletedDatetime.plusDays(30).isBefore(LocalDateTime.now());
+    }
 
     @Override
     public boolean equals(Object o) {

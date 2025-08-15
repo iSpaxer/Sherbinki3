@@ -4,12 +4,10 @@ import org.springframework.http.HttpStatus;
 import ru.stm.shcherbinki3.model.Carrier;
 
 public class SingletonCarrierForUser extends BusinessException {
-    public SingletonCarrierForUser(Carrier carrier) {
+    public SingletonCarrierForUser(Long userId) {
         super(String.format(
-                "User with id %d already owns a carrier (id: %d, name: '%s'). Each user can have only one carrier.",
-                carrier.getOwner().getId(),
-                carrier.getId(),
-                carrier.getName()
+                "User with id %d already owns a carrier. Each user can have only one carrier.",
+                userId
         ), HttpStatus.CONFLICT);
     }
 }

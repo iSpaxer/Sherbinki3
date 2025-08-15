@@ -8,8 +8,8 @@ import ru.stm.shcherbinki3.dto.UserDto;
 import ru.stm.shcherbinki3.model.User;
 import ru.stm.shcherbinki3.model.type.RecordStatus;
 import ru.stm.shcherbinki3.util.exception.BadRequestException;
-import ru.stm.shcherbinki3.util.exception.DuplicateEmailException;
-import ru.stm.shcherbinki3.util.exception.EmailUsedByDeletedUserException;
+import ru.stm.shcherbinki3.util.exception.business.DuplicateEmailException;
+import ru.stm.shcherbinki3.util.exception.business.EmailUsedByDeletedUserException;
 import ru.stm.shcherbinki3.util.exception.ResourceNotFoundException;
 import ru.stm.shcherbinki3.util.mapper.UserMapper;
 
@@ -30,7 +30,7 @@ public class UserService {
                 userDao.findByEmailAndRecordStatus(dto.getEmail(), RecordStatus.DELETED)
                         .ifPresentOrElse(
                                 user -> {
-                                    throw new EmailUsedByDeletedUserException("Email was used by deleted account", dto.getEmail());
+                                    throw new EmailUsedByDeletedUserException(dto.getEmail());
                                 },
                                 () -> {
                                     throw new DuplicateEmailException("Email is already taken");
@@ -64,5 +64,9 @@ public class UserService {
         if (!deleted) {
             throw new BadRequestException("User does not exist or already deleted");
         }
+    }
+
+    public boolean hasCarrier(Long id) {
+        return userDao.hasCarrier(id);
     }
 }
