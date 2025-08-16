@@ -39,4 +39,4 @@ build/
 
 ### Others ###
 .mvn/*
-mvnw*
+scripts/*
