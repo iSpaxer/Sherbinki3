@@ -73,12 +73,20 @@ public class UserDto {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof UserDto dto)) return false;
-        return Objects.equals(id, dto.getId()) && Objects.equals(email, dto.getEmail());
+
+        if (id != null && dto.id != null) {
+            return Objects.equals(id, dto.getId());
+        }
+
+        return Objects.equals(email, dto.getEmail());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, email);
+        if (id != null) {
+            return id.hashCode();
+        }
+        return Objects.hash(email);
     }
 
     @Override

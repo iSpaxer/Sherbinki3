@@ -10,6 +10,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Objects;
 
 @Getter
@@ -24,13 +25,15 @@ public class Ticket {
 
     private User user; // ManyToOne
 
-    @NotNull(message = "Seat number cannot be null")
-    @Positive(message = "Seat number must be positive")
-    private Integer seatNumber;
+//    @NotNull(message = "Seat number cannot be null")
+//    @Positive(message = "Seat number must be positive")
+    private Integer placeNumber;
 
-    @NotNull(message = "Price cannot be null")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
+//    @NotNull(message = "Price cannot be null")
+//    @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
     private BigDecimal price;
+
+    private OffsetDateTime departureDatetime;
 
     @Override
     public boolean equals(Object o) {
