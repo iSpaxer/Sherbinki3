@@ -24,9 +24,9 @@ public class UserDaoImpl implements UserDao {
     private final SimpleJdbcInsert simpleJdbcInsert;
 
     @Autowired
-    public UserDaoImpl(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
+    public UserDaoImpl(NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
-        this.simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
+        this.simpleJdbcInsert = new SimpleJdbcInsert(namedParameterJdbcTemplate.getJdbcTemplate())
                 .withTableName(TABLE_NAME)
                 .usingGeneratedKeyColumns("id")
                 .usingColumns("email", "password", "name", "lastname", "patronymic");
@@ -117,7 +117,7 @@ public class UserDaoImpl implements UserDao {
                          ELSE false
                       END
                     FROM %s u
-                    JOIN %s c ON c.id = u.carrier_id
+                    LEFT JOIN %s c ON c.id = u.carrier_id
                     WHERE u.id = :userId
                 """.formatted(TABLE_NAME, CarrierDao.TABLE_NAME);
 

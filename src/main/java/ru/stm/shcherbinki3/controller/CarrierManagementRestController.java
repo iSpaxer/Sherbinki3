@@ -7,16 +7,22 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.stm.shcherbinki3.dto.CarrierDto;
+import ru.stm.shcherbinki3.dto.route.RouteDto;
+import ru.stm.shcherbinki3.dto.ticket.TicketCreateDto;
 import ru.stm.shcherbinki3.service.CarrierService;
+import ru.stm.shcherbinki3.service.RouteService;
+import ru.stm.shcherbinki3.service.TicketService;
 
 import java.net.URI;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/")
-public class CarrierRestController {
+public class CarrierManagementRestController {
 
     private final CarrierService carrierService;
+    private final RouteService routeService;
+    private final TicketService ticketService;
 
     @Operation(
             summary = "Create a new carrier",
@@ -67,15 +73,26 @@ public class CarrierRestController {
     }
 
 
+    @PostMapping("/route/create")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<?> createRoute(@RequestParam Long userId,
+                                         @RequestBody RouteDto dto) {
+        return ResponseEntity.created(URI.create("/api/v1/route/" + routeService.create(userId, dto))).build();
+    }
+
+    @PostMapping("/route/{id}/tickets/create")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<?> createRouteTickets(@RequestParam Long userId,
+                                         @PathVariable(value = "id") Long routeId,
+                                         @RequestBody TicketCreateDto dto) {
+        ticketService.create(userId, routeId, dto);
+        return null;
+    }
+
+
 
 
 //////
-//    @PostMapping("/carrier/{carrier}/route/create")
-//    @ResponseStatus(HttpStatus.CREATED)
-//    // todo AOP ну не фильтры, валидация через интерсепторы
-//    public ResponseEntity<CarrierDto> createCarrier(Auth auth, CarrierDto carrierDto) {
-//        carrierService.create(carrierDto, auth);
-//    }
 //
 //    @GetMapping("/carrier/routes")
 //    @ResponseStatus(HttpStatus.CREATED)

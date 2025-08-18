@@ -8,4 +8,5 @@ public interface TicketDao {
 
     List<Ticket> findAllByUserId(Long userId);
 
+    void createAll(Long userId, Long routeId, List<Ticket> ticketList);
 }

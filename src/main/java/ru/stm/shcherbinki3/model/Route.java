@@ -24,17 +24,11 @@ public class Route {
 
     private Carrier carrier;
 
-//    @NotNull(message = "Departure cannot be null")
-//    @Size(min = 2, max = 100, message = "Departure must be between 2 and 100 characters")
     private String departure;
 
-//    @NotNull(message = "Destination cannot be null")
-//    @Size(min = 2, max = 100, message = "Destination must be between 2 and 100 characters")
     private String destination;
 
-//    @NotNull(message = "Duration cannot be null")
-//    @Positive(message = "Duration must be positive")
-    private Duration durationMinutes;
+    private Long durationMinutes;
 
     private RecordStatus recordStatus;
 
