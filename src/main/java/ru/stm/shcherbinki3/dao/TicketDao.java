@@ -6,7 +6,10 @@ import java.util.List;
 
 public interface TicketDao {
 
+    String TABLE_NAME = "ticket";
+
     List<Ticket> findAllByUserId(Long userId);
 
-    void createAll(Long userId, Long routeId, List<Ticket> ticketList);
+    void createAll(Long routeId, List<Ticket> ticketList);
+
 }

@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.stm.shcherbinki3.dto.CarrierDto;
-import ru.stm.shcherbinki3.dto.route.RouteDto;
+import ru.stm.shcherbinki3.dto.carrier.CarrierDto;
+import ru.stm.shcherbinki3.dto.route.RouteWithCarrierDto;
 import ru.stm.shcherbinki3.dto.ticket.TicketCreateDto;
 import ru.stm.shcherbinki3.service.CarrierService;
 import ru.stm.shcherbinki3.service.RouteService;
@@ -76,7 +76,7 @@ public class CarrierManagementRestController {
     @PostMapping("/route/create")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<?> createRoute(@RequestParam Long userId,
-                                         @RequestBody RouteDto dto) {
+                                         @RequestBody RouteWithCarrierDto dto) {
         return ResponseEntity.created(URI.create("/api/v1/route/" + routeService.create(userId, dto))).build();
     }
 
@@ -86,7 +86,7 @@ public class CarrierManagementRestController {
                                          @PathVariable(value = "id") Long routeId,
                                          @RequestBody TicketCreateDto dto) {
         ticketService.create(userId, routeId, dto);
-        return null;
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
 

@@ -3,25 +3,25 @@ package ru.stm.shcherbinki3.dao.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import ru.stm.shcherbinki3.dao.CarrierDao;
+import ru.stm.shcherbinki3.dao.RouteDao;
 import ru.stm.shcherbinki3.dao.UserDao;
 import ru.stm.shcherbinki3.model.Carrier;
+import ru.stm.shcherbinki3.model.Route;
 import ru.stm.shcherbinki3.model.User;
 import ru.stm.shcherbinki3.model.type.RecordStatus;
 import ru.stm.shcherbinki3.util.exception.BadRequestException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Repository
 public class CarrierDaoImpl implements CarrierDao {
@@ -51,6 +51,58 @@ public class CarrierDaoImpl implements CarrierDao {
         Map<String, Object> params = Map.of("userId", userId, "recordStatus", RecordStatus.ACTIVE.name());
         return doRequestInBd(sql, params);
     }
+
+
+    @Override
+    public Optional<Carrier> findWithRoutesByUserIdAndRecordStatus(Long userId, RecordStatus recordStatus) {
+        String sql = """
+                SELECT c.id AS carrier_id, c.name, c.phone, c.record_status AS carrier_record_status,
+                       r.id AS route_id, r.departure, r.destination, r.duration_minutes, r.record_status AS route_record_status
+                FROM %s c
+                JOIN %s us ON us.carrier_id = c.id
+                JOIN %s r ON r.carrier_id = c.id
+                WHERE us.id = :userId AND c.record_status = :recordStatus
+                """.formatted(TABLE_NAME, UserDao.TABLE_NAME, RouteDao.TABLE_NAME);
+
+        Map<String, Object> params = Map.of(
+                "userId", userId,
+                "recordStatus", recordStatus.name()
+        );
+
+        Carrier carrier = namedParameterJdbcTemplate.query(sql, params, rs -> {
+            Carrier c = null;
+
+            while (rs.next()) {
+                if (c == null) {
+                    c = new Carrier();
+                    c.setId(rs.getLong("carrier_id"));
+                    c.setName(rs.getString("name"));
+                    c.setPhone(rs.getString("phone"));
+                    c.setRecordStatus(RecordStatus.valueOf(rs.getString("carrier_record_status")));
+                    c.setRouteList(new ArrayList<>());
+                }
+
+                Long routeId = rs.getLong("route_id");
+                if (!rs.wasNull()) {
+                    Route route = new Route();
+                    route.setId(routeId);
+                    route.setCarrier(c);
+                    route.setDeparture(rs.getString("departure"));
+                    route.setDestination(rs.getString("destination"));
+                    route.setDurationMinutes(rs.getLong("duration_minutes"));
+                    String routeStatus = rs.getString("route_record_status");
+                    route.setRecordStatus(routeStatus != null ? RecordStatus.valueOf(routeStatus) : null);
+                    c.getRouteList()
+                            .add(route);
+                }
+            }
+
+            return c;
+        });
+
+        return Optional.ofNullable(carrier);
+    }
+
 
     @Override
     public Optional<Carrier> findByName(String name) {

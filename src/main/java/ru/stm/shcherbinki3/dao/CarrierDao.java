@@ -10,6 +10,8 @@ public interface CarrierDao {
 
     Optional<Carrier> findByUserIdAndRecordStatus(Long userId, RecordStatus recordStatus);
 
+    Optional<Carrier> findWithRoutesByUserIdAndRecordStatus(Long userId, RecordStatus recordStatus);
+
     Optional<Carrier> findByName(String name);
 
     Carrier create(Carrier carrier, Long userId);

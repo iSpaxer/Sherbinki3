@@ -8,7 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.stm.shcherbinki3.dto.CarrierDto;
 import ru.stm.shcherbinki3.dto.ticket.TicketCreateDto;
 import ru.stm.shcherbinki3.model.type.RecordStatus;
 

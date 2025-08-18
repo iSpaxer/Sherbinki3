@@ -14,4 +14,6 @@ public interface UserDao {
     boolean update(User user);
     boolean deleteById(Long id);
     boolean hasCarrier(Long id);
+    boolean isOwnerOfRoute(Long userId, Long routeId);
+
 }

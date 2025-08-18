@@ -3,7 +3,6 @@ package ru.stm.shcherbinki3.dao.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -11,6 +10,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import ru.stm.shcherbinki3.dao.CarrierDao;
+import ru.stm.shcherbinki3.dao.RouteDao;
 import ru.stm.shcherbinki3.dao.UserDao;
 import ru.stm.shcherbinki3.model.User;
 import ru.stm.shcherbinki3.model.type.RecordStatus;
@@ -127,6 +127,29 @@ public class UserDaoImpl implements UserDao {
                 Boolean.class
         );
         return Boolean.TRUE.equals(result);
+    }
+
+    @Override
+    public boolean isOwnerOfRoute(Long userId, Long routeId) {
+        String sql = """
+                    SELECT COUNT(*)
+                    FROM %s u
+                    JOIN %s c ON c.id = u.carrier_id
+                    JOIN %s r ON r.id = r.carrier_id
+                    WHERE u.id = :userId AND r.id = :routeId
+                """.formatted(TABLE_NAME, CarrierDao.TABLE_NAME, RouteDao.TABLE_NAME);
+
+        Map<String, Object> params = Map.of(
+                "userId", userId,
+                "routeId", routeId
+        );
+
+        try {
+            Integer count = namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
+            return count != null && count > 0;
+        } catch (EmptyResultDataAccessException e) {
+            return false;
+        }
     }
 
     private Optional<User> doRequestInBd(String sql, Map<String, Object> params) {

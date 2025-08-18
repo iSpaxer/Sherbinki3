@@ -4,7 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.stm.shcherbinki3.dao.CarrierDao;
-import ru.stm.shcherbinki3.dto.CarrierDto;
+import ru.stm.shcherbinki3.dto.carrier.CarrierDto;
+import ru.stm.shcherbinki3.dto.carrier.CarrierWithRoutesDto;
 import ru.stm.shcherbinki3.model.Carrier;
 import ru.stm.shcherbinki3.model.type.RecordStatus;
 import ru.stm.shcherbinki3.util.exception.BadRequestException;
@@ -62,8 +63,8 @@ public class CarrierService {
         return carrier.getName();
     }
 
-    public CarrierDto getByUserId(Long userId) {
-        return mapper.toDto(carrierDao.findByUserIdAndRecordStatus(userId, RecordStatus.ACTIVE)
+    public CarrierWithRoutesDto getByUserId(Long userId) {
+       return mapper.toDtoWithListRoutes(carrierDao.findWithRoutesByUserIdAndRecordStatus(userId, RecordStatus.ACTIVE)
                                     .orElseThrow(() -> new ResourceNotFoundException(
                                             "Carrier for user with id=%s not found".formatted(userId))));
     }

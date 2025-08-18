@@ -8,16 +8,21 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.stm.shcherbinki3.dto.carrier.CarrierDto;
 import ru.stm.shcherbinki3.model.type.RecordStatus;
+
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class RouteDto {
+public class RouteWithCarrierDto {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private CarrierDto carrier;
 
     @NotNull(message = "Departure cannot be null")
     @Size(min = 2, max = 100, message = "Departure must be between 2 and 100 characters")
@@ -35,4 +40,3 @@ public class RouteDto {
     private RecordStatus recordStatus;
 
 }
-

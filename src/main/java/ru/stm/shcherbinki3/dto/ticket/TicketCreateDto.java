@@ -11,7 +11,6 @@ import ru.stm.shcherbinki3.util.validition.ValidCorrectionTicketsLimit;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -22,6 +21,7 @@ import java.util.Set;
 @ValidCorrectionTicketsLimit
 public class TicketCreateDto {
 
+    @Min(1)
     private Integer quantityOfPlaces;
 
     @NotNull(message = "Price cannot be null")

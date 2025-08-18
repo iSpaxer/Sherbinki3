@@ -7,8 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.stm.shcherbinki3.dto.CarrierDto;
 import ru.stm.shcherbinki3.dto.UserDto;
+import ru.stm.shcherbinki3.dto.carrier.CarrierWithRoutesDto;
 import ru.stm.shcherbinki3.service.CarrierService;
 import ru.stm.shcherbinki3.service.UserService;
 
@@ -70,7 +70,7 @@ public class UserRestController {
 
     @GetMapping("/carrier")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<CarrierDto> getCarrier(Long userId) {
+    public ResponseEntity<CarrierWithRoutesDto> getCarrier(Long userId) {
         return ResponseEntity.ok(carrierService.getByUserId(userId));
     }
 

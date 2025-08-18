@@ -1,7 +1,8 @@
-package ru.stm.shcherbinki3.dto;
+package ru.stm.shcherbinki3.dto.carrier;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,7 +24,7 @@ public class CarrierDto {
     @Size(min = 2, max = 255, message = "Carrier name must be between 2 and 255 characters")
     private String name;
 
-    @Size(min = 11, max = 11, message = "Carrier phone must be exactly 11 characters")
+    @Pattern(regexp = "\\+7\\d{10}", message = "Phone must be in format +7XXXXXXXXXX")
     private String phone;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)

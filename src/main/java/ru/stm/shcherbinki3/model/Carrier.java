@@ -29,6 +29,8 @@ public class Carrier {
 
     private LocalDateTime deletedDatetime;
 
+    private List<Route> routeList;
+
     @JsonIgnore
     public boolean expiredDatetimeForSaveCarrier() {
         return deletedDatetime != null && deletedDatetime.plusDays(30).isBefore(LocalDateTime.now());

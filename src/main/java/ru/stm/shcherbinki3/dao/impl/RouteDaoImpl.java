@@ -12,14 +12,12 @@ import ru.stm.shcherbinki3.model.type.RecordStatus;
 import ru.stm.shcherbinki3.util.pagination.Pageable;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 @Repository
 public class RouteDaoImpl implements RouteDao {
 
     private static final Set<String> ALLOWED_SORT_COLUMNS = Set.of("id", "departure", "destination", "duration_minutes");
-
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
@@ -31,12 +29,12 @@ public class RouteDaoImpl implements RouteDao {
     @Override
     public Route create(Long userId, Route entity) {
         String sql = """
-                    INSERT INTO route (carrier_id, departure, destination, duration_minutes)
+                    INSERT INTO %s (carrier_id, departure, destination, duration_minutes)
                     SELECT u.carrier_id, :departure, :destination, :duration_minutes
                     FROM app_user u
                     WHERE u.id = :user_id
                     RETURNING id
-                """;
+                """.formatted(TABLE_NAME);
 
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("user_id", userId)
