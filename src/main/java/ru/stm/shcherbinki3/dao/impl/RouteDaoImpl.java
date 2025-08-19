@@ -81,17 +81,17 @@ public class RouteDaoImpl implements RouteDao {
         }
 
         if (departure != null && !departure.isBlank()) {
-            sql.append(" AND r.departure = :departure");
+            sql.append(" AND r.departure LIKE :departure");
             params.addValue("departure", departure);
         }
 
         if (destination != null && !destination.isBlank()) {
-            sql.append(" AND r.destination = :destination");
+            sql.append(" AND r.destination LIKE :destination");
             params.addValue("destination", destination);
         }
 
         if (date != null) {
-            sql.append(" AND t.departure_datetime => :date t.departure_datetime < :endDate");
+            sql.append(" AND t.departure_datetime >= :date AND t.departure_datetime < :endDate");
             params.addValue("date", date.atStartOfDay());
             params.addValue("endDate", date.plusDays(1).atStartOfDay());
         } else {
@@ -163,11 +163,12 @@ public class RouteDaoImpl implements RouteDao {
         }
 
         if (date != null) {
-            sql.append(" AND t.departure_datetime >= :date");
+            sql.append(" AND t.departure_datetime >= :date AND t.departure_datetime < :endDate");
             params.addValue("date", date.atStartOfDay());
+            params.addValue("endDate", date.plusDays(1).atStartOfDay());
         } else {
             sql.append(" AND t.departure_datetime >= :currentTime");
-            params.addValue("currentTime", LocalDate.now().atStartOfDay());
+            params.addValue("currentTime", LocalDateTime.now());
         }
 
         return namedParameterJdbcTemplate.queryForObject(sql.toString(), params, Long.class);

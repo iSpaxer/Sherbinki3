@@ -112,8 +112,9 @@ public class TicketDaoImpl implements TicketDao {
         params.addValue("routeId", routeId);
 
         if (date != null) {
-            sql.append(" AND t.departure_datetime = :date");
+            sql.append(" AND t.departure_datetime >= :date AND t.departure_datetime < :endDate");
             params.addValue("date", date.atStartOfDay());
+            params.addValue("endDate", date.plusDays(1).atStartOfDay());
         } else {
             sql.append(" AND t.departure_datetime >= :currentTime");
             params.addValue("currentTime", LocalDateTime.now());

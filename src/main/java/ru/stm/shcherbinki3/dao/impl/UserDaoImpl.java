@@ -135,7 +135,7 @@ public class UserDaoImpl implements UserDao {
                     SELECT COUNT(*)
                     FROM %s u
                     JOIN %s c ON c.id = u.carrier_id
-                    JOIN %s r ON r.id = r.carrier_id
+                    JOIN %s r ON c.id = r.carrier_id
                     WHERE u.id = :userId AND r.id = :routeId
                 """.formatted(TABLE_NAME, CarrierDao.TABLE_NAME, RouteDao.TABLE_NAME);
 
