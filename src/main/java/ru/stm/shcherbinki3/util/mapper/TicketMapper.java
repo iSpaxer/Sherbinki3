@@ -1,7 +1,9 @@
 package ru.stm.shcherbinki3.util.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import ru.stm.shcherbinki3.dto.ticket.TicketCreateDto;
+import ru.stm.shcherbinki3.dto.ticket.TicketPublicDto;
 import ru.stm.shcherbinki3.model.Ticket;
 
 import java.math.BigDecimal;
@@ -32,5 +34,10 @@ public interface TicketMapper {
                 )
                 .toList();
     }
+
+    @Mapping(target = "isPurchased", expression = "java(ticket.getUser() != null)")
+    TicketPublicDto toDto(Ticket ticket);
+
+    List<TicketPublicDto> toDtoList(List<Ticket> ticketList);
 
 }

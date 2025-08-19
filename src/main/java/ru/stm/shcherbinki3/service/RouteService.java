@@ -9,6 +9,7 @@ import ru.stm.shcherbinki3.util.mapper.RouteMapper;
 import ru.stm.shcherbinki3.util.pagination.PageResponse;
 import ru.stm.shcherbinki3.util.pagination.Pageable;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -23,9 +24,10 @@ public class RouteService {
         return route.getId();
     }
 
-    public PageResponse<RouteWithCarrierDto> getRoutes(String carrierName, String departure, String destination, Pageable pageable) {
-        List<Route> routeList = routeDao.findByParameters(carrierName, departure, destination, pageable);
-        long total = routeDao.countByParameters(carrierName, departure, destination);
+    public PageResponse<RouteWithCarrierDto> getRoutes(String carrierName, String departure, String destination,
+                                                       LocalDate date, Pageable pageable) {
+        List<Route> routeList = routeDao.findByParameters(carrierName, departure, destination, date, pageable);
+        long total = routeDao.countByParameters(carrierName, departure, date, destination);
         return new PageResponse<>(routeMapper.toDtoList(routeList), pageable.page(), pageable.size(), total);
     }
 }

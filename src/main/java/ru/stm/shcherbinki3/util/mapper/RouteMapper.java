@@ -7,7 +7,7 @@ import ru.stm.shcherbinki3.model.Route;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = CarrierMapper.class)
 public interface RouteMapper {
 
     Route toEntity(RouteWithCarrierDto dto);

@@ -30,18 +30,19 @@ public class PageableArgumentResolver implements HandlerMethodArgumentResolver {
         String sizeParam = webRequest.getParameter("size");
         String sortParam = webRequest.getParameter("sortBy");
 
+        Pageable.SortDirection direction = DEFAULT_DIRECTION;
+        try {
+            direction = Pageable.SortDirection.valueOf(webRequest.getParameter("direction"));
+        } catch (IllegalArgumentException | NullPointerException ignored) {}
+
         int page = pageParam != null ? Integer.parseInt(pageParam) : DEFAULT_PAGE;
         int size = sizeParam != null ? Integer.parseInt(sizeParam) : DEFAULT_SIZE;
 
         String sortBy = DEFAULT_SORT;
-        Pageable.SortDirection direction = DEFAULT_DIRECTION;
 
         if (sortParam != null && !sortParam.isBlank()) {
             String[] parts = sortParam.split(",");
             sortBy = parts[0];
-            if (parts.length > 1) {
-                direction = Pageable.SortDirection.valueOf(parts[1].toUpperCase());
-            }
         }
 
         return new Pageable(page, size, sortBy, direction);

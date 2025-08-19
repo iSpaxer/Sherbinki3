@@ -6,18 +6,19 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.stm.shcherbinki3.dao.CarrierDao;
 import ru.stm.shcherbinki3.dao.RouteDao;
+import ru.stm.shcherbinki3.dao.TicketDao;
 import ru.stm.shcherbinki3.model.Carrier;
 import ru.stm.shcherbinki3.model.Route;
 import ru.stm.shcherbinki3.model.type.RecordStatus;
 import ru.stm.shcherbinki3.util.pagination.Pageable;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
 @Repository
 public class RouteDaoImpl implements RouteDao {
-
-    private static final Set<String> ALLOWED_SORT_COLUMNS = Set.of("id", "departure", "destination", "duration_minutes");
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
@@ -49,11 +50,12 @@ public class RouteDaoImpl implements RouteDao {
     }
 
     @Override
-    public List<Route> findByParameters(String carrierName, String departure, String destination, Pageable pageable) {
+    public List<Route> findByParameters(String carrierName, String departure, String destination, LocalDate date,
+                                        Pageable pageable) {
         String sortBy = getSortBy(pageable);
 
         StringBuilder sql = new StringBuilder("""
-        SELECT
+        SELECT DISTINCT
             r.id               AS route_id,
             r.departure        AS route_departure,
             r.destination      AS route_destination,
@@ -67,13 +69,14 @@ public class RouteDaoImpl implements RouteDao {
             c.deleted_datetime AS carrier_deleted_datetime
         FROM %s r
         JOIN %s c ON c.id = r.carrier_id
+        JOIN %s t ON t.route_id = r.id
         WHERE 1=1
-        """.formatted(TABLE_NAME, CarrierDao.TABLE_NAME));
+        """.formatted(TABLE_NAME, CarrierDao.TABLE_NAME, TicketDao.TABLE_NAME));
 
         MapSqlParameterSource params = new MapSqlParameterSource();
 
         if (carrierName != null && !carrierName.isBlank()) {
-            sql.append(" AND c.name = :carrierName");
+            sql.append(" AND c.name LIKE :carrierName");
             params.addValue("carrierName", carrierName);
         }
 
@@ -87,13 +90,19 @@ public class RouteDaoImpl implements RouteDao {
             params.addValue("destination", destination);
         }
 
+        if (date != null) {
+            sql.append(" AND t.departure_datetime => :date t.departure_datetime < :endDate");
+            params.addValue("date", date.atStartOfDay());
+            params.addValue("endDate", date.plusDays(1).atStartOfDay());
+        } else {
+            sql.append(" AND t.departure_datetime >= :currentTime");
+            params.addValue("currentTime", LocalDateTime.now());
+        }
+
         sql.append(" ORDER BY r.%s %s LIMIT :limit OFFSET :offset"
                            .formatted(sortBy, pageable.direction().name()));
-
         params.addValue("limit", pageable.size());
         params.addValue("offset", pageable.offset());
-
-        System.out.println(sql);
 
         return namedParameterJdbcTemplate.query(sql.toString(), params, (rs, rowNum) -> {
             Carrier carrier = new Carrier();
@@ -121,20 +130,20 @@ public class RouteDaoImpl implements RouteDao {
 
 
     private String getSortBy(Pageable pageable) {
-        String sortBy = ALLOWED_SORT_COLUMNS.contains(pageable.sortBy())
+        return ALLOWED_SORT_COLUMNS.contains(pageable.sortBy())
                 ? pageable.sortBy()
                 : "id";
-        return sortBy;
     }
 
     @Override
-    public long countByParameters(String carrierName, String departure, String destination) {
+    public long countByParameters(String carrierName, String departure, LocalDate date, String destination) {
         StringBuilder sql = new StringBuilder("""
-        SELECT COUNT(*)
+        SELECT COUNT(DISTINCT r.id)
         FROM %s r
         JOIN %s c ON c.id = r.carrier_id
+        JOIN %s t ON t.route_id = r.id
         WHERE 1=1
-        """.formatted(TABLE_NAME, CarrierDao.TABLE_NAME));
+        """.formatted(TABLE_NAME, CarrierDao.TABLE_NAME, TicketDao.TABLE_NAME));
 
         MapSqlParameterSource params = new MapSqlParameterSource();
 
@@ -151,6 +160,14 @@ public class RouteDaoImpl implements RouteDao {
         if (destination != null && !destination.isBlank()) {
             sql.append(" AND r.destination = :destination");
             params.addValue("destination", destination);
+        }
+
+        if (date != null) {
+            sql.append(" AND t.departure_datetime >= :date");
+            params.addValue("date", date.atStartOfDay());
+        } else {
+            sql.append(" AND t.departure_datetime >= :currentTime");
+            params.addValue("currentTime", LocalDate.now().atStartOfDay());
         }
 
         return namedParameterJdbcTemplate.queryForObject(sql.toString(), params, Long.class);

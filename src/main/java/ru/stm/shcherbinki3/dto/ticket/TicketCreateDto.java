@@ -10,6 +10,7 @@ import lombok.Setter;
 import ru.stm.shcherbinki3.util.validition.ValidCorrectionTicketsLimit;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.Set;
@@ -28,7 +29,7 @@ public class TicketCreateDto {
     @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
     private BigDecimal commonPrice;
 
-    private OffsetDateTime departureDatetime;
+    private LocalDateTime departureDatetime;
 
     private Set<CorrectionTickets> correctionTickets;
 

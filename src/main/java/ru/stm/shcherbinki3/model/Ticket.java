@@ -25,7 +25,7 @@ public class Ticket {
 
     private BigDecimal price;
 
-    private OffsetDateTime departureDatetime;
+    private LocalDateTime departureDatetime;
 
     @Override
     public boolean equals(Object o) {
