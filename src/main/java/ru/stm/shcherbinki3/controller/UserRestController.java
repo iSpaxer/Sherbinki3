@@ -1,6 +1,8 @@
 package ru.stm.shcherbinki3.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -86,8 +88,13 @@ public class UserRestController {
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<PageResponse<TicketPurchasedDto>> getTickets(
             Long userId,
-            @RequestParam(required = false) LocalDate after,
-            @RequestParam(required = false) LocalDate before,
+            @RequestParam(required = false)
+            @Parameter(description = "Date of after (format: YYYY-MM-DD)",
+                    schema = @Schema(type = "string", format = "date", example = "2025-07-19"))
+            LocalDate after,
+            @RequestParam(required = false)
+            @Parameter(description = "Date of before (format: YYYY-MM-DD)",
+                    schema = @Schema(type = "string", format = "date", example = "2025-08-19"))LocalDate before,
             Pageable pageable
     ) {
         return ResponseEntity.ok(

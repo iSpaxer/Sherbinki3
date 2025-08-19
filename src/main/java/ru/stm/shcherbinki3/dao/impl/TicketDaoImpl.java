@@ -116,7 +116,7 @@ public class TicketDaoImpl implements TicketDao {
         }
 
         if (before != null) {
-            sql.append(" t.departure_datetime < :before");
+            sql.append("AND t.departure_datetime < :before");
             params.addValue("before", before.plusDays(1).atStartOfDay());
         }
 
@@ -171,7 +171,7 @@ public class TicketDaoImpl implements TicketDao {
         }
 
         if (before != null) {
-            sql.append(" t.departure_datetime < :before");
+            sql.append(" AND t.departure_datetime < :before");
             params.addValue("before", before.plusDays(1).atStartOfDay());
         }
 
