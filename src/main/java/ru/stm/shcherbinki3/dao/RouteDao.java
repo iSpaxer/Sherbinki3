@@ -16,5 +16,6 @@ public interface RouteDao {
 
     List<Route> findByParameters(String carrierName, String departure, String destination, LocalDate date, Pageable pageable);
 
-    long countByParameters(String carrierName, String departure, LocalDate date, String destination);
+    long countByParameters(String carrierName, String departure, String destination, LocalDate date);
+
 }

@@ -27,7 +27,7 @@ public class RouteService {
     public PageResponse<RouteWithCarrierDto> getRoutes(String carrierName, String departure, String destination,
                                                        LocalDate date, Pageable pageable) {
         List<Route> routeList = routeDao.findByParameters(carrierName, departure, destination, date, pageable);
-        long total = routeDao.countByParameters(carrierName, departure, date, destination);
+        long total = routeDao.countByParameters(carrierName, departure, destination, date);
         return new PageResponse<>(routeMapper.toDtoList(routeList), pageable.page(), pageable.size(), total);
     }
 }

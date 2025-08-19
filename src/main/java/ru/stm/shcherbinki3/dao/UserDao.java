@@ -11,9 +11,9 @@ public interface UserDao {
     Optional<User> findByIdAndRecordStatus(Long id, RecordStatus recordStatus);
     Optional<User> findByEmailAndRecordStatus(String email, RecordStatus recordStatus);
     User create(User user);
-    boolean update(User user);
-    boolean deleteById(Long id);
-    boolean hasCarrier(Long id);
+    boolean update(Long id, User user);
+    boolean setDeleted(Long id, RecordStatus status);
+    boolean hasCarrier(Long id, RecordStatus userRecordStatus);
     boolean isOwnerOfRoute(Long userId, Long routeId);
 
 }

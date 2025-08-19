@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
@@ -14,8 +13,11 @@ import ru.stm.shcherbinki3.dao.RouteDao;
 import ru.stm.shcherbinki3.dao.UserDao;
 import ru.stm.shcherbinki3.model.User;
 import ru.stm.shcherbinki3.model.type.RecordStatus;
+import ru.stm.shcherbinki3.util.sql.SqlQueryBuilder;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 @Repository
 public class UserDaoImpl implements UserDao {
@@ -34,25 +36,46 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public Optional<User> findByIdAndRecordStatus(Long id, RecordStatus recordStatus) {
-        String sql = """
+        SqlQueryBuilder builder = new SqlQueryBuilder("""
                 SELECT id, email, password, name, lastname, patronymic, record_status
                 FROM %s
-                WHERE id = :id AND record_status = :status
-                """.formatted(TABLE_NAME);
-        Map<String, Object> params = Map.of("id", id, "status", recordStatus.name());
+                WHERE 1=1
+                """.formatted(TABLE_NAME))
+                .addFilter("id = :id", "id", id)
+                .addFilter("record_status = :status", "status", recordStatus.name());
 
-        return doRequestInBd(sql, params);
+        try {
+            User user = namedParameterJdbcTemplate.queryForObject(
+                    builder.getSql(),
+                    builder.getParams(),
+                    new BeanPropertyRowMapper<>(User.class)
+            );
+            return Optional.ofNullable(user);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     @Override
     public Optional<User> findByEmailAndRecordStatus(String email, RecordStatus recordStatus) {
-        String sql = """
+        SqlQueryBuilder builder = new SqlQueryBuilder("""
                 SELECT id, email, password, name, lastname, patronymic, record_status
                 FROM %s
-                WHERE email = :email AND record_status = :status
-                """.formatted(TABLE_NAME);
-        Map<String, Object> params = Map.of("email", email, "status", recordStatus.name());
-        return doRequestInBd(sql, params);
+                WHERE 1=1
+                """.formatted(TABLE_NAME))
+                .addFilter("email = :email", "email", email)
+                .addFilter("record_status = :status", "status", recordStatus.name());
+
+        try {
+            User user = namedParameterJdbcTemplate.queryForObject(
+                    builder.getSql(),
+                    builder.getParams(),
+                    new BeanPropertyRowMapper<>(User.class)
+            );
+            return Optional.ofNullable(user);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     @Override
@@ -64,66 +87,49 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public boolean update(User user) {
-        Map<String, Object> params = new HashMap<>();
-        StringBuilder sql = new StringBuilder("UPDATE %s SET".formatted(TABLE_NAME));
+    public boolean update(Long id, User user) {
+        Map<String, Object> fields = new HashMap<>();
+        if (user.getPassword() != null) fields.put("password", user.getPassword());
+        if (user.getName() != null) fields.put("name", user.getName());
+        if (user.getLastname() != null) fields.put("lastname", user.getLastname());
+        if (user.getPatronymic() != null) fields.put("patronymic", user.getPatronymic());
 
-        List<String> setClauses = new ArrayList<>();
+        SqlQueryBuilder builder = new SqlQueryBuilder("UPDATE %s".formatted(TABLE_NAME))
+                .addUpdateFields(fields)
+                .addFilterWhere("id = :id", "id", id)
+                .addFilter("record_status = 'ACTIVE'", null, null);
 
-        if (user.getPassword() != null) {
-            setClauses.add("password = :password");
-            params.put("password", user.getPassword());
-        }
-        if (user.getName() != null) {
-            setClauses.add("name = :name");
-            params.put("name", user.getName());
-        }
-        if (user.getLastname() != null) {
-            setClauses.add("lastname = :lastname");
-            params.put("lastname", user.getLastname());
-        }
-        if (user.getPatronymic() != null) {
-            setClauses.add("patronymic = :patronymic");
-            params.put("patronymic", user.getPatronymic());
-        }
-
-        if (setClauses.isEmpty()) {
-            throw new IllegalArgumentException("At least one field must be provided for update");
-        }
-
-        sql.append(String.join(", ", setClauses));
-
-        // Нельзя обновлять удаленные аккаунты
-        sql.append(" WHERE id = :id AND record_status = 'ACTIVE'");
-        params.put("id", user.getId());
-
-        return namedParameterJdbcTemplate.update(sql.toString(), new MapSqlParameterSource(params)) > 0;
+        return namedParameterJdbcTemplate.update(builder.getSql(), builder.getParams()) > 0;
     }
 
     @Override
-    public boolean deleteById(Long id) {
-        String sql = "UPDATE %s SET record_status = 'DELETED' WHERE id = :id AND record_status = 'ACTIVE'"
-                .formatted(TABLE_NAME);
-        Map<String, Object> params = Map.of("id", id);
-        return namedParameterJdbcTemplate.update(sql, params) > 0;
+    public boolean setDeleted(Long id, RecordStatus status) {
+        SqlQueryBuilder builder = new SqlQueryBuilder("UPDATE %s".formatted(TABLE_NAME))
+                .addUpdateFields(Map.of("record_status", status.name()))
+                .addFilterWhere(" id = :id", "id", id)
+                .addFilter("record_status = 'ACTIVE'", null, null);
+
+        return namedParameterJdbcTemplate.update(builder.getSql(), builder.getParams()) > 0;
     }
 
     @Override
-    public boolean hasCarrier(Long id) {
-        String sql = """
-                    SELECT
-                        CASE WHEN u.carrier_id IS NOT NULL AND c.record_status = 'ACTIVE'
-                         THEN true
-                         ELSE false
-                      END
-                    FROM %s u
-                    LEFT JOIN %s c ON c.id = u.carrier_id
-                    WHERE u.id = :userId
-                """.formatted(TABLE_NAME, CarrierDao.TABLE_NAME);
+    public boolean hasCarrier(Long id, RecordStatus userRecordStatus) {
+        SqlQueryBuilder builder = new SqlQueryBuilder("""
+                SELECT
+                    CASE WHEN u.carrier_id IS NOT NULL AND c.record_status = :status
+                    THEN true 
+                    ELSE false 
+                END
+                FROM %s u
+                LEFT JOIN %s c ON c.id = u.carrier_id
+                WHERE 1=1
+                """.formatted(TABLE_NAME, CarrierDao.TABLE_NAME))
+                .addValue("status", userRecordStatus.name())
+                .addFilter("u.id = :userId", "userId", id);
 
         Boolean result = namedParameterJdbcTemplate.queryForObject(
-                sql,
-                Map.of("userId", id),
+                builder.getSql(),
+                builder.getParams(),
                 Boolean.class
         );
         return Boolean.TRUE.equals(result);
@@ -131,37 +137,21 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public boolean isOwnerOfRoute(Long userId, Long routeId) {
-        String sql = """
-                    SELECT COUNT(*)
-                    FROM %s u
-                    JOIN %s c ON c.id = u.carrier_id
-                    JOIN %s r ON c.id = r.carrier_id
-                    WHERE u.id = :userId AND r.id = :routeId
-                """.formatted(TABLE_NAME, CarrierDao.TABLE_NAME, RouteDao.TABLE_NAME);
+        SqlQueryBuilder builder = new SqlQueryBuilder("""
+                SELECT COUNT(*)
+                FROM %s u
+                JOIN %s c ON c.id = u.carrier_id
+                JOIN %s r ON c.id = r.carrier_id
+                WHERE 1=1
+                """.formatted(TABLE_NAME, CarrierDao.TABLE_NAME, RouteDao.TABLE_NAME))
+                .addFilter("u.id = :userId", "userId", userId)
+                .addFilter("r.id = :routeId", "routeId", routeId);
 
-        Map<String, Object> params = Map.of(
-                "userId", userId,
-                "routeId", routeId
+        Integer count = namedParameterJdbcTemplate.queryForObject(
+                builder.getSql(),
+                builder.getParams(),
+                Integer.class
         );
-
-        try {
-            Integer count = namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
-            return count != null && count > 0;
-        } catch (EmptyResultDataAccessException e) {
-            return false;
-        }
+        return count != null && count > 0;
     }
-
-    private Optional<User> doRequestInBd(String sql, Map<String, Object> params) {
-        try {
-            return Optional.ofNullable(namedParameterJdbcTemplate.queryForObject(
-                    sql,
-                    params,
-                    new BeanPropertyRowMapper<>(User.class)
-            ));
-        } catch (EmptyResultDataAccessException e) {
-            return Optional.empty();
-        }
-    }
-
 }

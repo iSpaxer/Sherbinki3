@@ -3,20 +3,16 @@ package ru.stm.shcherbinki3.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.stm.shcherbinki3.dao.UserDao;
 import ru.stm.shcherbinki3.dto.UserDto;
-import ru.stm.shcherbinki3.dto.ticket.TicketPublicDto;
 import ru.stm.shcherbinki3.model.User;
 import ru.stm.shcherbinki3.model.type.RecordStatus;
 import ru.stm.shcherbinki3.util.exception.BadRequestException;
+import ru.stm.shcherbinki3.util.exception.ResourceNotFoundException;
 import ru.stm.shcherbinki3.util.exception.business.DuplicateEmailException;
 import ru.stm.shcherbinki3.util.exception.business.EmailUsedByDeletedUserException;
-import ru.stm.shcherbinki3.util.exception.ResourceNotFoundException;
 import ru.stm.shcherbinki3.util.mapper.UserMapper;
-import ru.stm.shcherbinki3.util.pagination.PageResponse;
-import ru.stm.shcherbinki3.util.pagination.Pageable;
-
-import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +21,7 @@ public class UserService {
     private final UserDao userDao;
     private final UserMapper userMapper;
 
+    @Transactional
     public Long create(UserDto dto) {
         try {
             User user = userDao.create(userMapper.toEntity(dto));
@@ -54,25 +51,27 @@ public class UserService {
         );
     }
 
-    public UserDto update(UserDto dto) {
-        boolean updated = userDao.update(userMapper.toEntity(dto));
+    @Transactional
+    public UserDto update(Long id, UserDto dto) {
+        boolean updated = userDao.update(id, userMapper.toEntity(dto));
 
         if (!updated) {
             throw new ResourceNotFoundException("User not found with id: " + dto.getId());
         }
 
-        return getById(dto.getId());
+        return getById(id);
     }
 
-    public void deleteById(Long id) {
-        boolean deleted = userDao.deleteById(id);
+    @Transactional
+    public void setDeleted(Long id, RecordStatus status) {
+        boolean deleted = userDao.setDeleted(id, status);
         if (!deleted) {
             throw new BadRequestException("User does not exist or already deleted");
         }
     }
 
-    public boolean hasCarrier(Long id) {
-        return userDao.hasCarrier(id);
+    public boolean hasCarrier(Long id, RecordStatus userRecordStatus) {
+        return userDao.hasCarrier(id, userRecordStatus);
     }
 
 }

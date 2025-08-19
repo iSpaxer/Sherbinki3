@@ -24,7 +24,7 @@ public class CarrierDto {
     @Size(min = 2, max = 255, message = "Carrier name must be between 2 and 255 characters")
     private String name;
 
-    @Pattern(regexp = "\\+7\\d{10}", message = "Phone must be in format +7XXXXXXXXXX")
+    @Pattern(regexp = "7\\d{10}", message = "Phone must be in format 7XXXXXXXXXX")
     private String phone;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)

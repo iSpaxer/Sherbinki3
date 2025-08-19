@@ -1,7 +1,7 @@
 package ru.stm.shcherbinki3.service;
 
-import jakarta.validation.constraints.FutureOrPresent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.stereotype.Service;
 import ru.stm.shcherbinki3.dao.TicketDao;
 import ru.stm.shcherbinki3.dao.UserDao;
@@ -9,6 +9,7 @@ import ru.stm.shcherbinki3.dto.ticket.TicketCreateDto;
 import ru.stm.shcherbinki3.dto.ticket.TicketPublicDto;
 import ru.stm.shcherbinki3.dto.ticket.TicketPurchasedDto;
 import ru.stm.shcherbinki3.model.Ticket;
+import ru.stm.shcherbinki3.util.exception.BadRequestException;
 import ru.stm.shcherbinki3.util.exception.ForbiddenException;
 import ru.stm.shcherbinki3.util.mapper.TicketMapper;
 import ru.stm.shcherbinki3.util.pagination.PageResponse;
@@ -30,7 +31,8 @@ public class TicketService {
         if (userDao.isOwnerOfRoute(userId, routeId)) {
             ticketDao.createAll(routeId, ticketList);
         } else {
-            throw new ForbiddenException("User with ID " + userId + " does not have access to route with ID " + routeId);
+            throw new ForbiddenException(
+                    "User with ID " + userId + " does not have access to route with ID " + routeId);
         }
     }
 
@@ -49,5 +51,21 @@ public class TicketService {
         long total = ticketDao.countByParameters(userId, after, before, pageable);
 
         return new PageResponse<>(ticketMapper.toDtoPurchasedList(ticketList), pageable.page(), pageable.size(), total);
+    }
+
+    public void buyTicket(Long userId, Long tickedId) {
+        if (!ticketDao.ticketMarkAs(userId, tickedId)) {
+            throw new BadRequestException("Couldn't buy a ticket. Please try again");
+        }
+    }
+
+    public void returnTicket(Long userId, Long tickedId) {
+        try {
+            if (!ticketDao.ticketMarkAs(null, tickedId)) {
+                throw new BadRequestException("The ticket could not be refunded. Please try again");
+            }
+        } catch (InvalidDataAccessApiUsageException e) {
+            throw new BadRequestException("Ticket refund is not possible");
+        }
     }
 }

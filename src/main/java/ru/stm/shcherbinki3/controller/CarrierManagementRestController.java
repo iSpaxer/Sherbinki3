@@ -89,15 +89,4 @@ public class CarrierManagementRestController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-
-
-
-//////
-//
-//    @GetMapping("/carrier/routes")
-//    @ResponseStatus(HttpStatus.CREATED)
-//    public ResponseEntity<CarrierDto> getRoutes(Auth auth, CarrierDto carrierDto) {
-//        carrierService.create(carrierDto, auth);
-//    }
-
 }

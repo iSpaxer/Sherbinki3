@@ -54,8 +54,8 @@ public class CarrierService {
                 }
             }
         }
-        // У пользователя
-        if (userService.hasCarrier(userId)) {
+
+        if (userService.hasCarrier(userId, RecordStatus.ACTIVE)) {
             throw new SingletonCarrierForUser(userId);
         }
 

@@ -7,9 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.stm.shcherbinki3.dao.TicketDao;
-import ru.stm.shcherbinki3.dto.carrier.CarrierDto;
-import ru.stm.shcherbinki3.dto.route.RouteFullDto;
 import ru.stm.shcherbinki3.dto.route.RouteWithCarrierDto;
 import ru.stm.shcherbinki3.dto.ticket.TicketPublicDto;
 import ru.stm.shcherbinki3.service.RouteService;
@@ -18,8 +15,6 @@ import ru.stm.shcherbinki3.util.pagination.PageResponse;
 import ru.stm.shcherbinki3.util.pagination.Pageable;
 
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -58,17 +53,5 @@ public class CarrierPublicController {
     ) {
         return ResponseEntity.ok(ticketService.getTickets(routeId, date, pageable));
     }
-
-    @GetMapping("/carriers")
-    public ResponseEntity<List<CarrierDto>> getAllCarriers() {
-        return null;
-    }
-
-    // getTickets - возможно стоит переименовать API - для меня оно не очевидное
-    @GetMapping("/route/{id}")
-    public ResponseEntity<RouteFullDto> getRoute() {
-        return null;
-    }
-
 
 }
