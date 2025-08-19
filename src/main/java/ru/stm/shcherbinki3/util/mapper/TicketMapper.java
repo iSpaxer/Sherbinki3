@@ -4,6 +4,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import ru.stm.shcherbinki3.dto.ticket.TicketCreateDto;
 import ru.stm.shcherbinki3.dto.ticket.TicketPublicDto;
+import ru.stm.shcherbinki3.dto.ticket.TicketPurchasedDto;
 import ru.stm.shcherbinki3.model.Ticket;
 
 import java.math.BigDecimal;
@@ -39,5 +40,7 @@ public interface TicketMapper {
     TicketPublicDto toDto(Ticket ticket);
 
     List<TicketPublicDto> toDtoList(List<Ticket> ticketList);
+
+    List<TicketPurchasedDto> toDtoPurchasedList(List<Ticket> ticketList);
 
 }

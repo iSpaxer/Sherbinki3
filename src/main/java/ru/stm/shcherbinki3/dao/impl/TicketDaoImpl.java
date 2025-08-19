@@ -1,6 +1,7 @@
 package ru.stm.shcherbinki3.dao.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -21,12 +22,6 @@ public class TicketDaoImpl implements TicketDao {
     @Autowired
     public TicketDaoImpl(
             NamedParameterJdbcTemplate namedParameterJdbcTemplate) {this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;}
-
-
-    @Override
-    public List<Ticket> findAllByUserId(Long userId) {
-        return null;
-    }
 
     @Override
     public void createAll(Long routeId, List<Ticket> ticketList) {
@@ -49,7 +44,6 @@ public class TicketDaoImpl implements TicketDao {
     }
     @Override
     public List<Ticket> findAllByRouteId(Long routeId, LocalDate date, Pageable pageable) {
-
         StringBuilder sql = new StringBuilder("""
             SELECT
                 id,
@@ -100,6 +94,43 @@ public class TicketDaoImpl implements TicketDao {
     }
 
     @Override
+    public List<Ticket> findAllByUserId(Long userId, LocalDate after, LocalDate before, Pageable pageable) {
+        StringBuilder sql = new StringBuilder("""
+            SELECT
+                id,
+                route_id AS routeId,
+                place_number AS placeNumber,
+                departure_datetime AS departureDatetime,
+                user_id AS userId,
+                price
+            FROM %s t
+            WHERE t.user_id = :userId
+            """.formatted(TicketDao.TABLE_NAME));
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("userId", userId);
+
+        if (after != null) {
+            sql.append(" AND t.departure_datetime >= :after");
+            params.addValue("after", after.atStartOfDay());
+        }
+
+        if (before != null) {
+            sql.append(" t.departure_datetime < :before");
+            params.addValue("before", before.plusDays(1).atStartOfDay());
+        }
+
+        String sortBy = getSortBy(pageable);
+        sql.append(" ORDER BY t.%s %s LIMIT :limit OFFSET :offset"
+                           .formatted(sortBy, pageable.direction().name()));
+
+        params.addValue("limit", pageable.size());
+        params.addValue("offset", pageable.offset());
+
+        return namedParameterJdbcTemplate.query(sql.toString(), params, new BeanPropertyRowMapper<>(Ticket.class));
+    }
+
+    @Override
     public long countByParameters(Long routeId, LocalDate date) {
         StringBuilder sql = new StringBuilder(
                 """
@@ -118,6 +149,30 @@ public class TicketDaoImpl implements TicketDao {
         } else {
             sql.append(" AND t.departure_datetime >= :currentTime");
             params.addValue("currentTime", LocalDateTime.now());
+        }
+
+        return namedParameterJdbcTemplate.queryForObject(sql.toString(), params, Long.class);
+    }
+
+    @Override
+    public long countByParameters(Long userId, LocalDate before, LocalDate after, Pageable pageable) {
+        StringBuilder sql = new StringBuilder("""
+            SELECT COUNT(DISTINCT t.id)
+            FROM %s t
+            WHERE t.user_id = :userId
+            """.formatted(TicketDao.TABLE_NAME));
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("userId", userId);
+
+        if (after != null) {
+            sql.append(" AND t.departure_datetime >= :after");
+            params.addValue("after", after.atStartOfDay());
+        }
+
+        if (before != null) {
+            sql.append(" t.departure_datetime < :before");
+            params.addValue("before", before.plusDays(1).atStartOfDay());
         }
 
         return namedParameterJdbcTemplate.queryForObject(sql.toString(), params, Long.class);

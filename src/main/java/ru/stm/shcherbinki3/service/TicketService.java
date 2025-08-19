@@ -7,6 +7,7 @@ import ru.stm.shcherbinki3.dao.TicketDao;
 import ru.stm.shcherbinki3.dao.UserDao;
 import ru.stm.shcherbinki3.dto.ticket.TicketCreateDto;
 import ru.stm.shcherbinki3.dto.ticket.TicketPublicDto;
+import ru.stm.shcherbinki3.dto.ticket.TicketPurchasedDto;
 import ru.stm.shcherbinki3.model.Ticket;
 import ru.stm.shcherbinki3.util.exception.ForbiddenException;
 import ru.stm.shcherbinki3.util.mapper.TicketMapper;
@@ -40,5 +41,13 @@ public class TicketService {
         long total = ticketDao.countByParameters(routeId, date);
 
         return new PageResponse<>(ticketMapper.toDtoList(ticketList), pageable.page(), pageable.size(), total);
+    }
+
+    public PageResponse<TicketPurchasedDto> getTicketsByUser(Long userId, LocalDate after, LocalDate before,
+                                                             Pageable pageable) {
+        List<Ticket> ticketList = ticketDao.findAllByUserId(userId, after, before, pageable);
+        long total = ticketDao.countByParameters(userId, after, before, pageable);
+
+        return new PageResponse<>(ticketMapper.toDtoPurchasedList(ticketList), pageable.page(), pageable.size(), total);
     }
 }

@@ -13,12 +13,14 @@ public interface TicketDao {
 
     Set<String> ALLOWED_SORT_COLUMNS = Set.of("id", "place_number", "departure_datetime", "price");
 
-    List<Ticket> findAllByUserId(Long userId);
+    List<Ticket> findAllByRouteId(Long routeId, LocalDate date, Pageable pageable);
+
+    List<Ticket> findAllByUserId(Long userId, LocalDate after, LocalDate before, Pageable pageable);
 
     void createAll(Long routeId, List<Ticket> ticketList);
 
-    List<Ticket> findAllByRouteId(Long routeId, LocalDate date, Pageable pageable);
-
     long countByParameters(Long routeId, LocalDate date);
+
+    long countByParameters(Long userId, LocalDate after, LocalDate before, Pageable pageable);
 
 }

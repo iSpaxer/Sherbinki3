@@ -5,6 +5,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import ru.stm.shcherbinki3.dao.UserDao;
 import ru.stm.shcherbinki3.dto.UserDto;
+import ru.stm.shcherbinki3.dto.ticket.TicketPublicDto;
 import ru.stm.shcherbinki3.model.User;
 import ru.stm.shcherbinki3.model.type.RecordStatus;
 import ru.stm.shcherbinki3.util.exception.BadRequestException;
@@ -12,6 +13,10 @@ import ru.stm.shcherbinki3.util.exception.business.DuplicateEmailException;
 import ru.stm.shcherbinki3.util.exception.business.EmailUsedByDeletedUserException;
 import ru.stm.shcherbinki3.util.exception.ResourceNotFoundException;
 import ru.stm.shcherbinki3.util.mapper.UserMapper;
+import ru.stm.shcherbinki3.util.pagination.PageResponse;
+import ru.stm.shcherbinki3.util.pagination.Pageable;
+
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -69,4 +74,5 @@ public class UserService {
     public boolean hasCarrier(Long id) {
         return userDao.hasCarrier(id);
     }
+
 }

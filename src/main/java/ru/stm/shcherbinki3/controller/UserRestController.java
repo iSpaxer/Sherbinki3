@@ -9,10 +9,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.stm.shcherbinki3.dto.UserDto;
 import ru.stm.shcherbinki3.dto.carrier.CarrierWithRoutesDto;
+import ru.stm.shcherbinki3.dto.ticket.TicketPublicDto;
+import ru.stm.shcherbinki3.dto.ticket.TicketPurchasedDto;
 import ru.stm.shcherbinki3.service.CarrierService;
+import ru.stm.shcherbinki3.service.TicketService;
 import ru.stm.shcherbinki3.service.UserService;
+import ru.stm.shcherbinki3.util.pagination.PageResponse;
+import ru.stm.shcherbinki3.util.pagination.Pageable;
 
 import java.net.URI;
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/v1/user")
@@ -21,6 +27,7 @@ import java.net.URI;
 public class UserRestController {
 
     private final UserService userService;
+    private final TicketService ticketService;
     private final CarrierService carrierService;
 
     @PostMapping("/create")
@@ -74,23 +81,19 @@ public class UserRestController {
         return ResponseEntity.ok(carrierService.getByUserId(userId));
     }
 
-//
-//    // todo Pageable
-//    @GetMapping("/tickets")
-//    @ResponseStatus(HttpStatus.OK)
-//    public ResponseEntity<List<TicketDto>> getTickets(
-//            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime travelDate,
-//            @RequestParam(required = false) String departure,
-//            @RequestParam(required = false) String destination,
-//            @RequestParam(required = false) String carrierName,
-//            @RequestParam(required = false) boolean active,
-//            @RequestParam(required = false) boolean expired,
-//            @RequestParam(defaultValue = "0") int page,
-//            @RequestParam(defaultValue = "10") int size) {
-//        return ResponseEntity.ok(
-//                userService.getTickets(travelDate, departure, destination, carrierName, active, expired, page, size));
-//
-//    }
+
+    @GetMapping("/tickets")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<PageResponse<TicketPurchasedDto>> getTickets(
+            Long userId,
+            @RequestParam(required = false) LocalDate after,
+            @RequestParam(required = false) LocalDate before,
+            Pageable pageable
+    ) {
+        return ResponseEntity.ok(
+                ticketService.getTicketsByUser(userId, after, before, pageable));
+
+    }
 
 
 
