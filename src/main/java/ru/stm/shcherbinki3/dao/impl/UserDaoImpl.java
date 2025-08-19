@@ -97,7 +97,7 @@ public class UserDaoImpl implements UserDao {
         SqlQueryBuilder builder = new SqlQueryBuilder("UPDATE %s".formatted(TABLE_NAME))
                 .addUpdateFields(fields)
                 .addFilterWhere("id = :id", "id", id)
-                .addFilter("record_status = 'ACTIVE'", null, null);
+                .addFilter("record_status = 'ACTIVE'");
 
         return namedParameterJdbcTemplate.update(builder.getSql(), builder.getParams()) > 0;
     }
@@ -107,7 +107,7 @@ public class UserDaoImpl implements UserDao {
         SqlQueryBuilder builder = new SqlQueryBuilder("UPDATE %s".formatted(TABLE_NAME))
                 .addUpdateFields(Map.of("record_status", status.name()))
                 .addFilterWhere(" id = :id", "id", id)
-                .addFilter("record_status = 'ACTIVE'", null, null);
+                .addFilter("record_status = 'ACTIVE'");
 
         return namedParameterJdbcTemplate.update(builder.getSql(), builder.getParams()) > 0;
     }

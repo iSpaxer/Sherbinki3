@@ -54,6 +54,13 @@ public class SqlQueryBuilder {
         return this;
     }
 
+    public SqlQueryBuilder addFilter(String condition) {
+        sql.append(" AND ")
+                .append(condition);
+
+        return this;
+    }
+
     public SqlQueryBuilder addOneDayDateFilter(LocalDate date, String dateField) {
         if (date != null) {
             sql.append(" AND ")

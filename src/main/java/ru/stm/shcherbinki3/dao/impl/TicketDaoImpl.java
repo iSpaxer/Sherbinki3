@@ -46,14 +46,22 @@ public class TicketDaoImpl implements TicketDao {
     }
 
     @Override
-    public boolean ticketMarkAs(Long userId, Long tickedId) {
+    public boolean assignTicketToUser(Long userId, Long ticketId) {
         SqlQueryBuilder builder = new SqlQueryBuilder(
             """
             UPDATE %s
             SET user_id = :userId
             """.formatted(TABLE_NAME))
                 .addValue("userId", userId)
-                .addFilterWhere("id = :tickedId", "tickedId", tickedId);
+                .addFilterWhere("id = :ticketId", "ticketId", ticketId);
+
+        if (userId != null) {
+            builder
+                    .addFilter("user_id = NULL");
+        } else {
+            builder
+                    .addFilter("user_id != NULL");
+        }
 
         return namedParameterJdbcTemplate.update(builder.getSql(), builder.getParams()) > 0;
     }

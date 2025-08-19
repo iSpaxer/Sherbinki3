@@ -20,7 +20,7 @@ public interface TicketDao {
 
     void createAll(@NotNull Long routeId, List<Ticket> ticketList);
 
-    boolean ticketMarkAs(Long userId, Long tickedId);
+    boolean assignTicketToUser(Long userId, Long ticketId);
 
     long countByParameters(@NotNull Long routeId, LocalDate date);
 

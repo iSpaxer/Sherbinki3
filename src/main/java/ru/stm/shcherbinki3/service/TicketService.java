@@ -54,15 +54,15 @@ public class TicketService {
     }
 
     public void buyTicket(Long userId, Long tickedId) {
-        if (!ticketDao.ticketMarkAs(userId, tickedId)) {
-            throw new BadRequestException("Couldn't buy a ticket. Please try again");
+        if (!ticketDao.assignTicketToUser(userId, tickedId)) {
+            throw new BadRequestException("Couldn't buy a ticket.");
         }
     }
 
-    public void returnTicket(Long userId, Long tickedId) {
+    public void returnTicket(Long userId, Long ticketId) {
         try {
-            if (!ticketDao.ticketMarkAs(null, tickedId)) {
-                throw new BadRequestException("The ticket could not be refunded. Please try again");
+            if (!ticketDao.assignTicketToUser(null, ticketId)) {
+                throw new BadRequestException("The ticket could not be refunded.");
             }
         } catch (InvalidDataAccessApiUsageException e) {
             throw new BadRequestException("Ticket refund is not possible");
