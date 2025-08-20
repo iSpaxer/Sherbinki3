@@ -3,6 +3,7 @@ package ru.stm.shcherbinki3.util.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import ru.stm.shcherbinki3.dto.carrier.CarrierCreateDto;
 import ru.stm.shcherbinki3.dto.carrier.CarrierDto;
 import ru.stm.shcherbinki3.dto.carrier.CarrierWithRoutesDto;
 import ru.stm.shcherbinki3.model.Carrier;
@@ -16,6 +17,12 @@ public interface CarrierMapper {
     @Mapping(target = "deletedDatetime", ignore = true)
     @Mapping(target = "routeList", ignore = true)
     Carrier toEntity(CarrierDto dto);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "owner", ignore = true)
+    @Mapping(target = "deletedDatetime", ignore = true)
+    @Mapping(target = "routeList", ignore = true)
+    Carrier toEntity(CarrierCreateDto dto);
 
     CarrierDto toDto(Carrier entity);
 

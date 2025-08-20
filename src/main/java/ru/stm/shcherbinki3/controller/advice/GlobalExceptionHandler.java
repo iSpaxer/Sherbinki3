@@ -28,6 +28,9 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
     @ExceptionHandler(DuplicateKeyException.class)
     public ResponseEntity<String> handleDuplicateKeyException(DuplicateKeyException ex) {
+        if (ex.getMessage().contains("carrier_name_key")) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Carrier with this name already exists");
+        }
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
 

@@ -16,6 +16,8 @@ public interface CarrierDao {
 
     Carrier create(Carrier carrier, Long userId);
 
+    boolean update(Long userId, Carrier entity);
+
     boolean hardDelete(Long userId);
 
     boolean setDeleted(Long userId, RecordStatus recordStatus);

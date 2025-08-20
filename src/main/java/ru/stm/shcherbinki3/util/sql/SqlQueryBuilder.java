@@ -133,4 +133,9 @@ public class SqlQueryBuilder {
     public String getSql() {
         return sql.toString();
     }
+
+    @Override
+    public String toString() {
+        return sql.toString();
+    }
 }

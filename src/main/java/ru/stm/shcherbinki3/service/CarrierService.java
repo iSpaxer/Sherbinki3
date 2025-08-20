@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.stm.shcherbinki3.dao.CarrierDao;
-import ru.stm.shcherbinki3.dto.carrier.CarrierDto;
+import ru.stm.shcherbinki3.dto.carrier.CarrierCreateDto;
 import ru.stm.shcherbinki3.dto.carrier.CarrierWithRoutesDto;
 import ru.stm.shcherbinki3.model.Carrier;
 import ru.stm.shcherbinki3.model.type.RecordStatus;
@@ -25,14 +25,16 @@ public class CarrierService {
     private final CarrierMapper mapper;
 
     @Transactional
-    public String create(CarrierDto carrierDto, Long userId) {
+    public String create(CarrierCreateDto carrierDto, Long userId) {
         Optional<Carrier> existing = carrierDao.findByName(carrierDto.getName());
 
         // если такой name занят
         if (existing.isPresent()) {
             Carrier carrier = existing.get();
 
-            if (carrier.getOwner().getId().equals(userId)) {
+            if (carrier.getOwner()
+                    .getId()
+                    .equals(userId)) {
                 // Если carrier в удаленных у этого же пользователя, то удаляем его окончательно и создаем новую
                 if (carrier.getRecordStatus() == RecordStatus.DELETED) {
                     if (!carrierDao.hardDelete(userId)) {
@@ -64,9 +66,9 @@ public class CarrierService {
     }
 
     public CarrierWithRoutesDto getByUserId(Long userId) {
-       return mapper.toDtoWithListRoutes(carrierDao.findWithRoutesByUserIdAndRecordStatus(userId, RecordStatus.ACTIVE)
-                                    .orElseThrow(() -> new ResourceNotFoundException(
-                                            "Carrier for user with id=%s not found".formatted(userId))));
+        return mapper.toDtoWithListRoutes(carrierDao.findWithRoutesByUserIdAndRecordStatus(userId, RecordStatus.ACTIVE)
+                                                  .orElseThrow(() -> new ResourceNotFoundException(
+                                                          "Carrier for user with id=%s not found".formatted(userId))));
     }
 
     @Transactional
@@ -83,5 +85,15 @@ public class CarrierService {
         if (!deleted) {
             throw new BadRequestException("The user does not have an associated carrier");
         }
+    }
+
+    public void update(CarrierCreateDto carrierDto, Long userId) {
+        if (!userService.hasCarrier(userId, RecordStatus.ACTIVE)) {
+            throw new BadRequestException("The user does not have a carrier");
+        }
+        if (!carrierDao.update(userId, mapper.toEntity(carrierDto))) {
+            throw new BadRequestException("The carrier has not been updated");
+        }
+
     }
 }

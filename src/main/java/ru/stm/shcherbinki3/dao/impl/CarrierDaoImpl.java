@@ -19,7 +19,6 @@ import ru.stm.shcherbinki3.util.sql.SqlQueryBuilder;
 import ru.stm.shcherbinki3.util.sql.rowmapper.CarrierWithOwnerRowMapper;
 import ru.stm.shcherbinki3.util.sql.rowmapper.CarrierWithRoutesExtractor;
 
-
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
@@ -42,11 +41,11 @@ public class CarrierDaoImpl implements CarrierDao {
     @Override
     public Optional<Carrier> findByUserIdAndRecordStatus(Long userId, RecordStatus recordStatus) {
         SqlQueryBuilder builder = new SqlQueryBuilder("""
-                SELECT c.id, c.name, c.phone, c.record_status
-                FROM %s c
-                JOIN %s us ON us.carrier_id = c.id
-                WHERE 1=1
-                """.formatted(TABLE_NAME, UserDao.TABLE_NAME))
+                                                              SELECT c.id, c.name, c.phone, c.record_status
+                                                              FROM %s c
+                                                              JOIN %s us ON us.carrier_id = c.id
+                                                              WHERE 1=1
+                                                              """.formatted(TABLE_NAME, UserDao.TABLE_NAME))
                 .addFilter("us.id = :userId", "userId", userId)
                 .addFilter("c.record_status = :recordStatus", "recordStatus", recordStatus.name());
 
@@ -65,40 +64,42 @@ public class CarrierDaoImpl implements CarrierDao {
     @Override
     public Optional<Carrier> findWithRoutesByUserIdAndRecordStatus(Long userId, RecordStatus recordStatus) {
         SqlQueryBuilder builder = new SqlQueryBuilder("""
-                SELECT c.id AS carrier_id, c.name, c.phone, c.record_status AS carrier_record_status,
-                       r.id AS route_id, r.departure, r.destination, r.duration_minutes, r.record_status AS route_record_status
-                FROM %s c
-                JOIN %s us ON us.carrier_id = c.id
-                JOIN %s r ON r.carrier_id = c.id
-                WHERE 1=1
-                """.formatted(TABLE_NAME, UserDao.TABLE_NAME, RouteDao.TABLE_NAME))
+                                                              SELECT c.id AS carrier_id, c.name, c.phone, c.record_status AS carrier_record_status,
+                                                                     r.id AS route_id, r.departure, r.destination, r.duration_minutes, r.record_status AS route_record_status
+                                                              FROM %s c
+                                                              JOIN %s us ON us.carrier_id = c.id
+                                                              JOIN %s r ON r.carrier_id = c.id
+                                                              WHERE 1=1
+                                                              """.formatted(TABLE_NAME, UserDao.TABLE_NAME,
+                                                                            RouteDao.TABLE_NAME))
                 .addFilter("us.id = :userId", "userId", userId)
                 .addFilter("c.record_status = :recordStatus", "recordStatus", recordStatus.name());
 
-        Carrier carrier = namedParameterJdbcTemplate.query(builder.getSql(), builder.getParams(), new CarrierWithRoutesExtractor());
+        Carrier carrier = namedParameterJdbcTemplate.query(builder.getSql(), builder.getParams(),
+                                                           new CarrierWithRoutesExtractor());
         return Optional.ofNullable(carrier);
     }
 
     @Override
     public Optional<Carrier> findByName(String name) {
         SqlQueryBuilder builder = new SqlQueryBuilder("""
-                SELECT
-                    c.id AS carrier_id,
-                    c.name AS carrier_name,
-                    c.phone AS carrier_phone,
-                    c.deleted_datetime AS deleted_datetime,
-                    c.record_status AS carrier_record_status,
-                    u.id AS user_id,
-                    u.email AS user_email,
-                    u.password AS user_password,
-                    u.name AS user_name,
-                    u.lastname AS user_lastname,
-                    u.patronymic AS user_patronymic,
-                    u.record_status AS user_record_status
-                FROM %s c
-                JOIN %s u ON u.carrier_id = c.id
-                WHERE 1=1
-                """.formatted(TABLE_NAME, UserDao.TABLE_NAME))
+                                                              SELECT
+                                                                  c.id AS carrier_id,
+                                                                  c.name AS carrier_name,
+                                                                  c.phone AS carrier_phone,
+                                                                  c.deleted_datetime AS deleted_datetime,
+                                                                  c.record_status AS carrier_record_status,
+                                                                  u.id AS user_id,
+                                                                  u.email AS user_email,
+                                                                  u.password AS user_password,
+                                                                  u.name AS user_name,
+                                                                  u.lastname AS user_lastname,
+                                                                  u.patronymic AS user_patronymic,
+                                                                  u.record_status AS user_record_status
+                                                              FROM %s c
+                                                              JOIN %s u ON u.carrier_id = c.id
+                                                              WHERE 1=1
+                                                              """.formatted(TABLE_NAME, UserDao.TABLE_NAME))
                 .addFilter("c.name = :name", "name", name);
 
         try {
@@ -132,6 +133,23 @@ public class CarrierDaoImpl implements CarrierDao {
     }
 
     @Override
+    public boolean update(Long userId, Carrier entity) {
+        SqlQueryBuilder sqlQueryBuilder = new SqlQueryBuilder(
+                """
+                UPDATE %s
+                SET name = :name, phone = :phone
+                WHERE id = (
+                    SELECT carrier_id FROM %s WHERE id = :userId
+                )
+                """.formatted(TABLE_NAME, UserDao.TABLE_NAME))
+                .addValue("name", entity.getName())
+                .addValue("phone", entity.getPhone())
+                .addValue("userId", userId);
+
+        return namedParameterJdbcTemplate.update(sqlQueryBuilder.toString(), sqlQueryBuilder.getParams()) > 0;
+    }
+
+    @Override
     public boolean hardDelete(Long userId) {
         String clearCarrierSql = """
                 UPDATE %s
@@ -156,15 +174,15 @@ public class CarrierDaoImpl implements CarrierDao {
     @Override
     public boolean setDeleted(Long userId, RecordStatus recordStatus) {
         SqlQueryBuilder builder = new SqlQueryBuilder("""
-                UPDATE %s
-                SET record_status = :recordStatus,
-                    deleted_datetime = :datetime
-                WHERE id = (
-                    SELECT carrier_id
-                    FROM %s
-                    WHERE id = :userId
-                )
-                """.formatted(TABLE_NAME, UserDao.TABLE_NAME))
+                                                              UPDATE %s
+                                                              SET record_status = :recordStatus,
+                                                                  deleted_datetime = :datetime
+                                                              WHERE id = (
+                                                                  SELECT carrier_id
+                                                                  FROM %s
+                                                                  WHERE id = :userId
+                                                              )
+                                                              """.formatted(TABLE_NAME, UserDao.TABLE_NAME))
                 .addFilter("record_status != :excludedStatus", "excludedStatus", recordStatus.name());
 
         MapSqlParameterSource params = builder.getParams();

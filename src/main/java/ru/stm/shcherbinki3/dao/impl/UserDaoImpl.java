@@ -140,8 +140,8 @@ public class UserDaoImpl implements UserDao {
         SqlQueryBuilder builder = new SqlQueryBuilder("""
                 SELECT
                     CASE WHEN u.carrier_id IS NOT NULL AND c.record_status = :status
-                    THEN true 
-                    ELSE false 
+                    THEN true
+                    ELSE false
                 END
                 FROM %s u
                 LEFT JOIN %s c ON c.id = u.carrier_id

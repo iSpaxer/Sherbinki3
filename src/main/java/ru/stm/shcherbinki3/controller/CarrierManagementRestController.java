@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.stm.shcherbinki3.dto.carrier.CarrierDto;
+import ru.stm.shcherbinki3.dto.carrier.CarrierCreateDto;
 import ru.stm.shcherbinki3.dto.route.RouteWithCarrierDto;
 import ru.stm.shcherbinki3.dto.ticket.TicketCreateDto;
 import ru.stm.shcherbinki3.service.CarrierService;
@@ -36,8 +36,15 @@ public class CarrierManagementRestController {
     )
     @PostMapping("/carrier/create")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<?> createCarrier(@RequestParam Long userId, @Valid @RequestBody CarrierDto carrierDto) {
+    public ResponseEntity<?> createCarrier(@RequestParam Long userId, @Valid @RequestBody CarrierCreateDto carrierDto) {
         return ResponseEntity.created(URI.create("/api/v1/carrier/" + carrierService.create(carrierDto, userId))).build();
+    }
+
+    @PutMapping("/carrier")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<?> updateCarrier(@RequestParam Long userId, @Valid @RequestBody CarrierCreateDto carrierDto) {
+        carrierService.update(carrierDto, userId);
+        return ResponseEntity.ok("Carrier has been updated!");
     }
 
 
