@@ -1,11 +1,13 @@
 package ru.stm.shcherbinki3.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.stm.shcherbinki3.model.type.RecordStatus;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class CarrierManagementService {
     private final UserService userService;
@@ -17,6 +19,7 @@ public class CarrierManagementService {
             carrierService.softDelete(userId);
         }
         userService.setDeleted(userId, RecordStatus.DELETED);
+        log.info("Successfully deleted userId={} and associated carrier", userId);
     }
 
     @Transactional
@@ -25,5 +28,6 @@ public class CarrierManagementService {
             carrierService.softRestore(userId);
         }
         userService.setDeleted(userId, RecordStatus.ACTIVE);
+        log.info("Successfully restored userId={} and associated carrier", userId);
     }
 }

@@ -9,7 +9,6 @@ import ru.stm.shcherbinki3.dao.UserDao;
 import ru.stm.shcherbinki3.dto.UserDto;
 import ru.stm.shcherbinki3.model.User;
 import ru.stm.shcherbinki3.model.type.RecordStatus;
-import ru.stm.shcherbinki3.util.exception.BadRequestException;
 import ru.stm.shcherbinki3.util.exception.ResourceNotFoundException;
 import ru.stm.shcherbinki3.util.exception.business.DuplicateEmailException;
 import ru.stm.shcherbinki3.util.exception.business.EmailUsedByDeletedUserException;
