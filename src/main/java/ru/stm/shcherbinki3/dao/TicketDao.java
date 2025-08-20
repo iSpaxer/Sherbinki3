@@ -22,6 +22,11 @@ public interface TicketDao {
 
     boolean assignTicketToUser(Long userId, Long ticketId);
 
+    boolean existsById(Long ticketId);
+
+    boolean existsByRouteId(Long routeId);
+
+
     long countByParameters(@NotNull Long routeId, LocalDate date);
 
     long countByParameters(@NotNull Long userId, LocalDate after, LocalDate before, @NotNull Pageable pageable);

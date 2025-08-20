@@ -22,4 +22,5 @@ public interface RouteDao {
 
     void delete(Long routeId);
 
+    boolean existsById(Long routeId);
 }

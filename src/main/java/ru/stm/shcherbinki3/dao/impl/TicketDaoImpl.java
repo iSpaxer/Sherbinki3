@@ -59,6 +59,40 @@ public class TicketDaoImpl implements TicketDao {
         return namedParameterJdbcTemplate.update(builder.getSql(), builder.getParams()) > 0;
     }
 
+    @Override
+    public boolean existsById(Long ticketId) {
+        SqlQueryBuilder builder = new SqlQueryBuilder("""
+                SELECT COUNT(*)
+                FROM %s
+                WHERE 1=1
+                """.formatted(TABLE_NAME))
+                .addFilter("id = :ticketId", "ticketId", ticketId);
+
+        Integer count = namedParameterJdbcTemplate.queryForObject(
+                builder.getSql(),
+                builder.getParams(),
+                Integer.class
+        );
+        return count != null && count > 0;
+    }
+
+    @Override
+    public boolean existsByRouteId(Long routeId) {
+        SqlQueryBuilder builder = new SqlQueryBuilder("""
+                SELECT COUNT(*)
+                FROM %s
+                WHERE 1=1
+                """.formatted(TABLE_NAME))
+                .addFilter("route_id = :routeId", "routeId", routeId);
+
+        Integer count = namedParameterJdbcTemplate.queryForObject(
+                builder.getSql(),
+                builder.getParams(),
+                Integer.class
+        );
+        return count != null && count > 0;
+    }
+
 
     @Override
     public List<Ticket> findAllByRouteId(@NotNull Long routeId, LocalDate date, @NotNull Pageable pageable) {

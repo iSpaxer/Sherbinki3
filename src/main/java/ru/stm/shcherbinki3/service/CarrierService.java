@@ -1,6 +1,7 @@
 package ru.stm.shcherbinki3.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.stm.shcherbinki3.dao.CarrierDao;
@@ -17,6 +18,7 @@ import ru.stm.shcherbinki3.util.mapper.CarrierMapper;
 import java.util.Optional;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class CarrierService {
 
@@ -27,73 +29,74 @@ public class CarrierService {
     @Transactional
     public String create(CarrierCreateDto carrierDto, Long userId) {
         Optional<Carrier> existing = carrierDao.findByName(carrierDto.getName());
-
-        // если такой name занят
         if (existing.isPresent()) {
             Carrier carrier = existing.get();
-
-            if (carrier.getOwner()
-                    .getId()
-                    .equals(userId)) {
-                // Если carrier в удаленных у этого же пользователя, то удаляем его окончательно и создаем новую
+            if (carrier.getOwner().getId().equals(userId)) {
                 if (carrier.getRecordStatus() == RecordStatus.DELETED) {
                     if (!carrierDao.hardDelete(userId)) {
-                        throw new BadRequestException("Unknown error. Please repeat it again.");
+                        log.error("Failed to create carrier: could not delete previous carrier for userId={}", userId);
+                        throw new BadRequestException("Failed to delete previous carrier for user with ID " + userId);
                     }
                 } else {
+                    log.error("Failed to create carrier: userId={} already has an active carrier", userId);
                     throw new SingletonCarrierForUser(userId);
                 }
-            } else {
-                // Если истекло время сохранения -> то удаляем
-                if (carrier.expiredDatetimeForSaveCarrier()) {
-                    if (!carrierDao.hardDelete(userId)) {
-                        throw new BadRequestException("Unknown error. Please repeat it again.");
-                    }
-                }
-                // Иначе пока сохраняем за пользователем carrier name
-                else {
-                    throw new DuplicateCarrierName(carrierDto.getName());
-                }
+            } else if (!carrier.expiredDatetimeForSaveCarrier()) {
+                log.error("Failed to create carrier: name={} is already taken", carrierDto.getName());
+                throw new DuplicateCarrierName(carrierDto.getName());
+            } else if (!carrierDao.hardDelete(carrier.getOwner().getId())) {
+                log.error("Failed to create carrier: could not delete expired carrier with name={}", carrierDto.getName());
+                throw new BadRequestException("Failed to delete expired carrier with name " + carrierDto.getName());
             }
         }
-
         if (userService.hasCarrier(userId, RecordStatus.ACTIVE)) {
+            log.error("Failed to create carrier: userId={} already has an active carrier", userId);
             throw new SingletonCarrierForUser(userId);
         }
-
         Carrier carrier = carrierDao.create(mapper.toEntity(carrierDto), userId);
+        log.info("Successfully created carrier with name={} for userId={}", carrier.getName(), userId);
         return carrier.getName();
     }
 
+    @Transactional(readOnly = true)
     public CarrierWithRoutesDto getByUserId(Long userId) {
-        return mapper.toDtoWithListRoutes(carrierDao.findWithRoutesByUserIdAndRecordStatus(userId, RecordStatus.ACTIVE)
-                                                  .orElseThrow(() -> new ResourceNotFoundException(
-                                                          "Carrier for user with id=%s not found".formatted(userId))));
+        Carrier carrier = carrierDao.findWithRoutesByUserIdAndRecordStatus(userId, RecordStatus.ACTIVE)
+                .orElseThrow(() -> {
+                    log.error("Failed to get carrier: carrier not found for userId={}", userId);
+                    return new ResourceNotFoundException("Carrier for user with ID " + userId + " not found");
+                });
+        log.info("Successfully retrieved carrier with name={} for userId={}", carrier.getName(), userId);
+        return mapper.toDtoWithListRoutes(carrier);
     }
 
     @Transactional
     public void softDelete(Long userId) {
-        boolean deleted = carrierDao.setDeleted(userId, RecordStatus.DELETED);
-        if (!deleted) {
-            throw new BadRequestException("The user does not have an associated carrier");
+        if (!carrierDao.setDeleted(userId, RecordStatus.DELETED)) {
+            log.error("Failed to soft delete carrier: no carrier found for userId={}", userId);
+            throw new BadRequestException("No active carrier found for user with ID " + userId);
         }
+        log.info("Successfully soft deleted carrier for userId={}", userId);
     }
 
     @Transactional
     public void softRestore(Long userId) {
-        boolean deleted = carrierDao.setDeleted(userId, RecordStatus.ACTIVE);
-        if (!deleted) {
-            throw new BadRequestException("The user does not have an associated carrier");
+        if (!carrierDao.setDeleted(userId, RecordStatus.ACTIVE)) {
+            log.error("Failed to restore carrier: no deleted carrier found for userId={}", userId);
+            throw new BadRequestException("No deleted carrier found for user with ID " + userId);
         }
+        log.info("Successfully restored carrier for userId={}", userId);
     }
 
+    @Transactional
     public void update(CarrierCreateDto carrierDto, Long userId) {
         if (!userService.hasCarrier(userId, RecordStatus.ACTIVE)) {
-            throw new BadRequestException("The user does not have a carrier");
+            log.error("Failed to update carrier: no active carrier found for userId={}", userId);
+            throw new BadRequestException("No active carrier found for user with ID " + userId);
         }
         if (!carrierDao.update(userId, mapper.toEntity(carrierDto))) {
-            throw new BadRequestException("The carrier has not been updated");
+            log.error("Failed to update carrier: update failed for userId={}", userId);
+            throw new BadRequestException("Failed to update carrier for user with ID " + userId);
         }
-
+        log.info("Successfully updated carrier for userId={}", userId);
     }
 }

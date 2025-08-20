@@ -155,4 +155,22 @@ public class RouteDaoImpl implements RouteDao {
             throw new ResourceNotFoundException("Route with id=" + routeId + " not found");
         }
     }
+
+    @Override
+    public boolean existsById(Long routeId) {
+        SqlQueryBuilder builder = new SqlQueryBuilder("""
+                SELECT COUNT(*)
+                FROM %s
+                WHERE 1=1
+                """.formatted(TABLE_NAME))
+                .addFilter("id = :routeId", "routeId", routeId)
+                .addFilter("record_status = 'ACTIVE'", null, null);
+
+        Integer count = namedParameterJdbcTemplate.queryForObject(
+                builder.getSql(),
+                builder.getParams(),
+                Integer.class
+        );
+        return count != null && count > 0;
+    }
 }
