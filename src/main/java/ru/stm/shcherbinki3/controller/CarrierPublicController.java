@@ -24,7 +24,7 @@ import java.time.LocalDate;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/")
+@RequestMapping("/api" + "/v${app.version}/")
 @Tag(name = "Public Carrier API", description = "API for retrieving public routes and tickets")
 public class CarrierPublicController {
 

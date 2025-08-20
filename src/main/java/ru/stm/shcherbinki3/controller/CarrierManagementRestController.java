@@ -24,7 +24,7 @@ import java.net.URI;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/")
+@RequestMapping("/api" + "/v${app.version}/")
 @Tag(name = "Carrier Management API", description = "API for managing carriers, routes, and tickets")
 public class CarrierManagementRestController {
 

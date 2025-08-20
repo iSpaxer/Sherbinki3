@@ -19,7 +19,7 @@ import ru.stm.shcherbinki3.util.exception.ErrorResponse;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/ticket")
+@RequestMapping("/api" + "/v${app.version}/ticket")
 @Tag(name = "Ticket Management API", description = "API for purchasing and returning tickets")
 public class TicketRestController {
 

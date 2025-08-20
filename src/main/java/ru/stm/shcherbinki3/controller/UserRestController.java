@@ -27,7 +27,7 @@ import java.net.URI;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/api/v1/user")
+@RequestMapping("/api" + "/v${app.version}/user")
 @RequiredArgsConstructor
 @Tag(name = "User API", description = "API for managing users")
 public class UserRestController {
