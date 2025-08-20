@@ -2,7 +2,9 @@ package ru.stm.shcherbinki3.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.stm.shcherbinki3.dao.RouteDao;
+import ru.stm.shcherbinki3.dao.UserDao;
 import ru.stm.shcherbinki3.dto.route.RouteWithCarrierDto;
 import ru.stm.shcherbinki3.model.Route;
 import ru.stm.shcherbinki3.util.mapper.RouteMapper;
@@ -17,6 +19,7 @@ import java.util.List;
 public class RouteService {
 
     private final RouteDao routeDao;
+    private final UserDao userDao;
     private final RouteMapper routeMapper;
 
     public Long create(Long userId, RouteWithCarrierDto dto) {
@@ -29,5 +32,12 @@ public class RouteService {
         List<Route> routeList = routeDao.findByParameters(carrierName, departure, destination, date, pageable);
         long total = routeDao.countByParameters(carrierName, departure, destination, date);
         return new PageResponse<>(routeMapper.toDtoList(routeList), pageable.page(), pageable.size(), total);
+    }
+
+    @Transactional
+    public void deleteByRouteId(Long userId, Long routeId) {
+        if (userDao.isOwnerOfRoute(userId, routeId)) {
+            routeDao.delete(routeId);
+        }
     }
 }

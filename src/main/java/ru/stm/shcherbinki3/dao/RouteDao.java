@@ -18,4 +18,6 @@ public interface RouteDao {
 
     long countByParameters(String carrierName, String departure, String destination, LocalDate date);
 
+    void delete(Long routeId);
+
 }

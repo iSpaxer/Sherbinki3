@@ -73,7 +73,7 @@ public class CarrierManagementRestController {
         """
     )
     @PatchMapping("/carrier/restore")
-    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<String> softRecover(@RequestParam Long userId) {
         carrierService.softRestore(userId);
         return ResponseEntity.ok("The carrier was successfully restored!");
@@ -85,6 +85,15 @@ public class CarrierManagementRestController {
     public ResponseEntity<?> createRoute(@RequestParam Long userId,
                                          @RequestBody RouteWithCarrierDto dto) {
         return ResponseEntity.created(URI.create("/api/v1/route/" + routeService.create(userId, dto))).build();
+    }
+
+    @DeleteMapping("/route/{id}")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<?> deleteRoute(@RequestParam Long userId,
+                                         @PathVariable(value = "id") Long routeId) {
+
+        routeService.deleteByRouteId(userId, routeId);
+        return ResponseEntity.ok("The route has been deleted along with the tickets");
     }
 
     @PostMapping("/route/{id}/tickets/create")

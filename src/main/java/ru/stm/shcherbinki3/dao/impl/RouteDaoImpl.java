@@ -10,6 +10,7 @@ import ru.stm.shcherbinki3.dao.RouteDao;
 import ru.stm.shcherbinki3.dao.TicketDao;
 import ru.stm.shcherbinki3.model.Route;
 import ru.stm.shcherbinki3.util.exception.BadRequestException;
+import ru.stm.shcherbinki3.util.exception.ResourceNotFoundException;
 import ru.stm.shcherbinki3.util.pagination.Pageable;
 import ru.stm.shcherbinki3.util.sql.SqlQueryBuilder;
 import ru.stm.shcherbinki3.util.sql.rowmapper.RouteRowMapper;
@@ -104,5 +105,35 @@ public class RouteDaoImpl implements RouteDao {
 
         Long count = namedParameterJdbcTemplate.queryForObject(builder.getSql(), builder.getParams(), Long.class);
         return count != null ? count : 0L;
+    }
+
+    @Override
+    public void delete(Long routeId) {
+        // Удаление связанных билетов
+        SqlQueryBuilder ticketBuilder = new SqlQueryBuilder(
+                """
+                DELETE FROM %s
+                """.formatted(TicketDao.TABLE_NAME))
+                .addFilterWhere("route_id = :routeId", "routeId", routeId);
+
+        String ticketSql = ticketBuilder.getSql();
+        MapSqlParameterSource ticketParams = ticketBuilder.getParams();
+
+        int ticketsDeleted = namedParameterJdbcTemplate.update(ticketSql, ticketParams);
+
+        // Удаление маршрута
+        SqlQueryBuilder routeBuilder = new SqlQueryBuilder(
+                """
+                DELETE FROM %s
+                """.formatted(TABLE_NAME))
+                .addFilterWhere("id = :routeId", "routeId", routeId);
+
+        String routeSql = routeBuilder.getSql();
+        MapSqlParameterSource routeParams = routeBuilder.getParams();
+
+        int rowsAffected = namedParameterJdbcTemplate.update(routeSql, routeParams);
+        if (rowsAffected == 0) {
+            throw new ResourceNotFoundException("Route with id=" + routeId + " not found");
+        }
     }
 }
