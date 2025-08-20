@@ -7,6 +7,7 @@ import ru.stm.shcherbinki3.dao.RouteDao;
 import ru.stm.shcherbinki3.dao.UserDao;
 import ru.stm.shcherbinki3.dto.route.RouteWithCarrierDto;
 import ru.stm.shcherbinki3.model.Route;
+import ru.stm.shcherbinki3.util.exception.BadRequestException;
 import ru.stm.shcherbinki3.util.mapper.RouteMapper;
 import ru.stm.shcherbinki3.util.pagination.PageResponse;
 import ru.stm.shcherbinki3.util.pagination.Pageable;
@@ -38,6 +39,8 @@ public class RouteService {
     public void deleteByRouteId(Long userId, Long routeId) {
         if (userDao.isOwnerOfRoute(userId, routeId)) {
             routeDao.delete(routeId);
+        } else {
+            throw new BadRequestException("Mistake. You can't delete a route.");
         }
     }
 }
