@@ -10,6 +10,7 @@ public interface UserDao {
 
     Optional<User> findByIdAndRecordStatus(Long id, RecordStatus recordStatus);
     Optional<User> findByEmailAndRecordStatus(String email, RecordStatus recordStatus);
+    Optional<User> findByTicketId(Long ticketId);
     User create(User user);
     boolean update(Long id, User user);
     boolean setDeleted(Long id, RecordStatus status);

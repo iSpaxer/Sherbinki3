@@ -1,8 +1,8 @@
 package ru.stm.shcherbinki3.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.stm.shcherbinki3.dao.TicketDao;
 import ru.stm.shcherbinki3.dao.UserDao;
 import ru.stm.shcherbinki3.dto.ticket.TicketCreateDto;
@@ -53,19 +53,31 @@ public class TicketService {
         return new PageResponse<>(ticketMapper.toDtoPurchasedList(ticketList), pageable.page(), pageable.size(), total);
     }
 
-    public void buyTicket(Long userId, Long tickedId) {
-        if (!ticketDao.assignTicketToUser(userId, tickedId)) {
-            throw new BadRequestException("Couldn't buy a ticket.");
-        }
+    @Transactional
+    public void buyTicket(Long userId, Long ticketId) {
+        userDao.findByTicketId(ticketId)
+                .ifPresentOrElse(user -> {
+                    throw new BadRequestException("The ticket has already been purchased");
+                }, () -> {
+                    if (!ticketDao.assignTicketToUser(userId, ticketId)) {
+                        throw new BadRequestException("Couldn't buy a ticket.");
+                    }
+                });
     }
 
+    @Transactional
     public void returnTicket(Long userId, Long ticketId) {
-        try {
-            if (!ticketDao.assignTicketToUser(null, ticketId)) {
-                throw new BadRequestException("The ticket could not be refunded.");
-            }
-        } catch (InvalidDataAccessApiUsageException e) {
-            throw new BadRequestException("Ticket refund is not possible");
-        }
+        userDao.findByTicketId(ticketId)
+                .ifPresentOrElse(user -> {
+                    if (user.getId().equals(userId)) {
+                        if (!ticketDao.assignTicketToUser(null, ticketId)) {
+                            throw new BadRequestException("The ticket could not be refunded.");
+                        }
+                        return;
+                    }
+                    throw new BadRequestException("You cannot refund the money for the ticket. The ticket was not purchased by you");
+                }, () -> {
+                    throw new BadRequestException("The ticket has not been purchased yet");
+                });
     }
 }

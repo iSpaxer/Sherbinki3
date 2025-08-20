@@ -24,9 +24,9 @@ public class TicketRestController {
 
     @PostMapping("/return")
     public ResponseEntity<?> returnTicket(Long userId,
-                                          @RequestParam Long tickedId) {
-        ticketService.returnTicket(userId, tickedId);
-        return ResponseEntity.ok("Ticket %d has been returned".formatted(tickedId));
+                                          @RequestParam Long ticketId) {
+        ticketService.returnTicket(userId, ticketId);
+        return ResponseEntity.ok("Ticket %d has been returned".formatted(ticketId));
     }
 
 }

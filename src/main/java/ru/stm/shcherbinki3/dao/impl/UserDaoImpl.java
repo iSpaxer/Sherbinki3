@@ -10,6 +10,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import ru.stm.shcherbinki3.dao.CarrierDao;
 import ru.stm.shcherbinki3.dao.RouteDao;
+import ru.stm.shcherbinki3.dao.TicketDao;
 import ru.stm.shcherbinki3.dao.UserDao;
 import ru.stm.shcherbinki3.model.User;
 import ru.stm.shcherbinki3.model.type.RecordStatus;
@@ -65,6 +66,28 @@ public class UserDaoImpl implements UserDao {
                 """.formatted(TABLE_NAME))
                 .addFilter("email = :email", "email", email)
                 .addFilter("record_status = :status", "status", recordStatus.name());
+
+        try {
+            User user = namedParameterJdbcTemplate.queryForObject(
+                    builder.getSql(),
+                    builder.getParams(),
+                    new BeanPropertyRowMapper<>(User.class)
+            );
+            return Optional.ofNullable(user);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public Optional<User> findByTicketId(Long ticketId) {
+        SqlQueryBuilder builder = new SqlQueryBuilder("""
+            SELECT u.id, u.email, u.name, u.lastname, u.patronymic
+            FROM %s u
+            LEFT JOIN %s t ON t.user_id = u.id
+            WHERE 1=1
+            """.formatted(TABLE_NAME, TicketDao.TABLE_NAME))
+                .addFilter("t.id = :ticketId", "ticketId", ticketId);
 
         try {
             User user = namedParameterJdbcTemplate.queryForObject(

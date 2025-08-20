@@ -55,13 +55,6 @@ public class TicketDaoImpl implements TicketDao {
                 .addValue("userId", userId)
                 .addFilterWhere("id = :ticketId", "ticketId", ticketId);
 
-        if (userId != null) {
-            builder
-                    .addFilter("user_id = NULL");
-        } else {
-            builder
-                    .addFilter("user_id != NULL");
-        }
 
         return namedParameterJdbcTemplate.update(builder.getSql(), builder.getParams()) > 0;
     }
