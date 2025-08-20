@@ -37,10 +37,16 @@ public class RouteService {
 
     @Transactional
     public void deleteByRouteId(Long userId, Long routeId) {
-        if (userDao.isOwnerOfRoute(userId, routeId)) {
-            routeDao.delete(routeId);
-        } else {
+        if (!userDao.isOwnerOfRoute(userId, routeId)) {
             throw new BadRequestException("Mistake. You can't delete a route.");
         }
+        routeDao.delete(routeId);
+    }
+
+    public void updateRoute(Long userId, Long routeId, Long durationMinutes) {
+        if (!userDao.isOwnerOfRoute(userId, routeId)) {
+            throw new BadRequestException("Mistake. You can't delete a route.");
+        }
+        routeDao.updateDurationMinutes(routeId, durationMinutes);
     }
 }

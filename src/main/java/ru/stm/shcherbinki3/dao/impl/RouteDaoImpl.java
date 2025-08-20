@@ -90,6 +90,25 @@ public class RouteDaoImpl implements RouteDao {
     }
 
     @Override
+    public void updateDurationMinutes(Long routeId, Long durationMinutes) {
+        SqlQueryBuilder builder = new SqlQueryBuilder(
+                """
+                UPDATE %s
+                SET duration_minutes = :durationMinutes
+                """.formatted(TABLE_NAME))
+                .addValue("durationMinutes", durationMinutes)
+                .addFilterWhere("id = :routeId", "routeId", routeId);
+
+        String sql = builder.getSql();
+        MapSqlParameterSource params = builder.getParams();
+
+        int rowsAffected = namedParameterJdbcTemplate.update(sql, params);
+        if (rowsAffected == 0) {
+            throw new ResourceNotFoundException("Route with id=" + routeId + " not found");
+        }
+    }
+
+    @Override
     public long countByParameters(String carrierName, String departure, String destination, LocalDate date) {
         SqlQueryBuilder builder = new SqlQueryBuilder("""
                 SELECT COUNT(DISTINCT r.id)

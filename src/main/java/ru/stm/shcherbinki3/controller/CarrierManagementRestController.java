@@ -96,6 +96,16 @@ public class CarrierManagementRestController {
         return ResponseEntity.ok("The route has been deleted along with the tickets");
     }
 
+    @PatchMapping("/route/{id}")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<?> deleteRoute(@RequestParam Long userId,
+                                         @PathVariable(value = "id") Long routeId,
+                                         @RequestBody Long durationMinutes) {
+
+        routeService.updateRoute(userId, routeId, durationMinutes);
+        return ResponseEntity.ok("Travel time has been updated");
+    }
+
     @PostMapping("/route/{id}/tickets/create")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<?> createRouteTickets(@RequestParam Long userId,

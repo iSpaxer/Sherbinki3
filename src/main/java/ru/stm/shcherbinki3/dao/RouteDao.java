@@ -16,6 +16,8 @@ public interface RouteDao {
 
     List<Route> findByParameters(String carrierName, String departure, String destination, LocalDate date, Pageable pageable);
 
+    void updateDurationMinutes(Long routeId, Long durationMinutes);
+
     long countByParameters(String carrierName, String departure, String destination, LocalDate date);
 
     void delete(Long routeId);
