@@ -1,13 +1,12 @@
 package ru.stm.shcherbinki3.security;
 
-import ru.stm.shcherbinki3.service.UserService;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import ru.stm.shcherbinki3.model.type.RecordStatus;
+import ru.stm.shcherbinki3.service.UserService;
 
 
 @Service
@@ -18,7 +17,7 @@ public class JwtUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return userService.getUserDetailsByEmail(email);
+        return userService.getUserDetailsByEmail(email, RecordStatus.ACTIVE);
     }
 
 }

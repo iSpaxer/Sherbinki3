@@ -1,9 +1,5 @@
 package ru.stm.shcherbinki3.security.filter;
 
-import org.springframework.http.HttpStatus;
-import ru.stm.shcherbinki3.util.exception.BadRequestException;
-import ru.stm.shcherbinki3.util.exception.ErrorResponse;
-import ru.stm.shcherbinki3.util.exception.ForbiddenException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.shaded.gson.JsonParseException;
 import jakarta.servlet.FilterChain;
@@ -14,9 +10,14 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
+import ru.stm.shcherbinki3.util.exception.BadRequestException;
+import ru.stm.shcherbinki3.util.exception.ErrorResponse;
+import ru.stm.shcherbinki3.util.exception.ForbiddenException;
 import ru.stm.shcherbinki3.util.exception.ResourceNotFoundException;
 
 import java.io.IOException;
@@ -76,6 +77,19 @@ public class JwtExceptionHandlerFilter extends OncePerRequestFilter {
                                 e.getMessage(),
                                 request.getRequestURI()
                         )));
+                return;
+            }
+
+            if (e instanceof BadCredentialsException) {
+                logger.error("Authentication error: %s".formatted(e.getMessage()));
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                response.getWriter().write(objectMapper.writeValueAsString(new ErrorResponse(
+                        HttpStatus.UNAUTHORIZED.value(),
+                        HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                        e.getMessage(),
+                        request.getRequestURI()
+                )));
                 return;
             }
 

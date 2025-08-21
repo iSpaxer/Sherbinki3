@@ -6,15 +6,19 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import ru.stm.shcherbinki3.dto.LoginRequest;
 import ru.stm.shcherbinki3.dto.UserDto;
 import ru.stm.shcherbinki3.dto.carrier.CarrierWithRoutesDto;
 import ru.stm.shcherbinki3.dto.ticket.TicketPurchasedDto;
+import ru.stm.shcherbinki3.security.DefaultAuthenticationPrincipal;
 import ru.stm.shcherbinki3.service.CarrierManagementService;
 import ru.stm.shcherbinki3.service.CarrierService;
 import ru.stm.shcherbinki3.service.TicketService;
@@ -63,7 +67,8 @@ public class UserRestController {
     @ResponseStatus(HttpStatus.OK)
     @Operation(
             summary = "Get user by ID",
-            description = "Retrieves user details by their ID."
+            description = "Retrieves user details by their ID.",
+            security = {@SecurityRequirement(name = "JWT")}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User successfully retrieved",
@@ -76,18 +81,17 @@ public class UserRestController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<UserDto> getUser(
-            @RequestParam
-            @Parameter(description = "ID of the user to retrieve", required = true, example = "1")
-            Long id
+            @AuthenticationPrincipal DefaultAuthenticationPrincipal defaultAuthenticationPrincipal
     ) {
-        return ResponseEntity.ok(userService.getById(id));
+        return ResponseEntity.ok(userService.getById(defaultAuthenticationPrincipal.getId()));
     }
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
     @Operation(
             summary = "Update an existing user's information",
-            description = "Updates the details of an existing user. All updatable fields must be provided."
+            description = "Updates the details of an existing user. All updatable fields must be provided.",
+            security = {@SecurityRequirement(name = "JWT")}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User successfully updated",
@@ -102,21 +106,20 @@ public class UserRestController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<UserDto> updateUser(
-            @RequestParam
-            @Parameter(description = "ID of the user to update", required = true, example = "1")
-            Long id,
+            @AuthenticationPrincipal DefaultAuthenticationPrincipal defaultAuthenticationPrincipal,
             @Valid @RequestBody
             @Parameter(description = "Updated user data", required = true)
             UserDto dto
     ) {
-        return ResponseEntity.ok(userService.update(id, dto));
+        return ResponseEntity.ok(userService.update(defaultAuthenticationPrincipal, dto));
     }
 
     @DeleteMapping
     @ResponseStatus(HttpStatus.OK)
     @Operation(
             summary = "Delete a user by ID",
-            description = "Deletes the user with the specified ID. Returns a confirmation message."
+            description = "Deletes the user with the specified ID. Returns a confirmation message.",
+            security = {@SecurityRequirement(name = "JWT")}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User successfully deleted",
@@ -131,11 +134,9 @@ public class UserRestController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<String> deleteUser(
-            @RequestParam
-            @Parameter(description = "ID of the user to delete", required = true, example = "1")
-            Long id
+            @AuthenticationPrincipal DefaultAuthenticationPrincipal defaultAuthenticationPrincipal
     ) {
-        carrierManagementService.deleteUserAndCarrier(id);
+        carrierManagementService.deleteUserAndCarrier(defaultAuthenticationPrincipal.getId());
         return ResponseEntity.ok("Account would have been deleted");
     }
 
@@ -158,11 +159,9 @@ public class UserRestController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<String> restoreUser(
-            @RequestBody
-            @Parameter(description = "ID of the user to restore", required = true, example = "1")
-            Long id
+            @RequestBody LoginRequest dto
     ) {
-        carrierManagementService.restoreUserAndCarrier(id);
+        carrierManagementService.restoreUserAndCarrier(dto);
         return ResponseEntity.ok("Account would have been restored");
     }
 
@@ -170,7 +169,8 @@ public class UserRestController {
     @ResponseStatus(HttpStatus.OK)
     @Operation(
             summary = "Get carrier with routes by user ID",
-            description = "Retrieves the carrier associated with the specified user ID, along with all its routes. Returns a CarrierWithRoutesDto containing carrier details and a list of routes."
+            description = "Retrieves the carrier associated with the specified user ID, along with all its routes. Returns a CarrierWithRoutesDto containing carrier details and a list of routes.",
+            security = {@SecurityRequirement(name = "JWT")}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Carrier and routes successfully retrieved",
@@ -183,18 +183,17 @@ public class UserRestController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<CarrierWithRoutesDto> getCarrier(
-            @RequestParam
-            @Parameter(description = "ID of the user whose carrier is to be retrieved", required = true, example = "1")
-            Long userId
+            @AuthenticationPrincipal DefaultAuthenticationPrincipal defaultAuthenticationPrincipal
     ) {
-        return ResponseEntity.ok(carrierService.getByUserId(userId));
+        return ResponseEntity.ok(carrierService.getByUserId(defaultAuthenticationPrincipal.getId()));
     }
 
     @GetMapping("/tickets")
     @ResponseStatus(HttpStatus.OK)
     @Operation(
             summary = "Get purchased tickets by user ID with pagination",
-            description = "Retrieves a paginated list of purchased tickets for the specified user ID. Supports optional date filters to narrow down results by ticket creation or travel date. Pagination is controlled via page and size parameters, with optional sorting."
+            description = "Retrieves a paginated list of purchased tickets for the specified user ID. Supports optional date filters to narrow down results by ticket creation or travel date. Pagination is controlled via page and size parameters, with optional sorting.",
+            security = {@SecurityRequirement(name = "JWT")}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "List of purchased tickets successfully retrieved",
@@ -207,18 +206,15 @@ public class UserRestController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<PageResponse<TicketPurchasedDto>> getTickets(
-            @RequestParam
-            @Parameter(description = "ID of the user whose tickets are to be retrieved", required = true, example = "1")
-            Long userId,
+            @AuthenticationPrincipal DefaultAuthenticationPrincipal defaultAuthenticationPrincipal,
             @RequestParam(required = false)
             @Parameter(description = "Filter tickets created or traveled after this date (format: YYYY-MM-DD)", schema = @Schema(type = "string", format = "date", example = "2025-07-19"))
             LocalDate after,
             @RequestParam(required = false)
             @Parameter(description = "Filter tickets created or traveled before this date (format: YYYY-MM-DD)", schema = @Schema(type = "string", format = "date", example = "2025-08-19"))
             LocalDate before,
-            @Parameter(description = "Pagination and sorting parameters", example = "{\"page\": 0, \"size\": 10, \"sort\": \"id,asc\"}")
             Pageable pageable
     ) {
-        return ResponseEntity.ok(ticketService.getTicketsByUser(userId, after, before, pageable));
+        return ResponseEntity.ok(ticketService.getTicketsByUser(defaultAuthenticationPrincipal.getId(), after, before, pageable));
     }
 }
