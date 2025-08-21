@@ -35,8 +35,7 @@ public class SwaggerConfig {
                                     .addSecuritySchemes("JWT", new SecurityScheme()
                                             .type(SecurityScheme.Type.HTTP)
                                             .scheme("bearer")
-                                            .bearerFormat("JWT")))
-                .addSecurityItem(new SecurityRequirement().addList("JWT"));
+                                            .bearerFormat("JWT")));
     }
 
     @Bean
@@ -50,9 +49,9 @@ public class SwaggerConfig {
             openApi
                     .path(dataComponent.glueEndpoint("/jwt/login"), new PathItem()
                             .post(new Operation()
-                                          .summary("Вход в аккаунт с логин и паролем.")
+                                          .summary("Log in to your account with your username (email) and password.")
                                           .security(Collections.emptyList())
-                                          .addTagsItem("account-controller")
+                                          .addTagsItem("Account API")
                                           .requestBody(new RequestBody()
                                                                .content(new Content().addMediaType(
                                                                                 org.springframework.http.MediaType.APPLICATION_JSON_VALUE,
@@ -79,7 +78,7 @@ public class SwaggerConfig {
                     .path(dataComponent.glueEndpoint("/jwt/logout"), new PathItem()
                             .post(new Operation()
                                           .summary("Logout from account")
-                                          .addTagsItem("account-controller")
+                                          .addTagsItem("Account API")
                                           .security(List.of(new SecurityRequirement().addList("JWT")))
                                           .responses(new ApiResponses()
                                                              .addApiResponse("200", new ApiResponse()
@@ -101,7 +100,7 @@ public class SwaggerConfig {
                     .path(dataComponent.glueEndpoint("/jwt/refresh"), new PathItem()
                             .post(new Operation()
                                           .summary("Get new access and refresh tocken.")
-                                          .addTagsItem("account-controller")
+                                          .addTagsItem("Account API")
                                           .requestBody(new RequestBody()
                                                                .content(new Content().addMediaType(
                                                                                 org.springframework.http.MediaType.APPLICATION_JSON_VALUE,

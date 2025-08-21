@@ -1,5 +1,6 @@
 package ru.stm.shcherbinki3.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import ru.stm.shcherbinki3.security.JwtUserDetailsService;
 import ru.stm.shcherbinki3.security.jwt.deserializer.AccessTokenJwsDeserializer;
 import ru.stm.shcherbinki3.security.jwt.deserializer.RefreshTokenJweDeserializer;
@@ -70,7 +71,8 @@ public class JwtCommonConfig {
             ApplicationDataComponent applicationDataComponent,
             AuthenticationJwtResponseMapper authenticationJwtResponseMapper,
             JwtRedisService jwtRedisService,
-            ForbiddenEntryPoint forbiddenEntryPoint) {
+            ForbiddenEntryPoint forbiddenEntryPoint,
+            ApplicationDataComponent appData) {
         return new JwtAuthenticationConfigurer(
                 jwtUserDetailsService,
                 passwordEncoder,
@@ -85,7 +87,8 @@ public class JwtCommonConfig {
                 applicationDataComponent,
                 authenticationJwtResponseMapper,
                 jwtRedisService,
-                forbiddenEntryPoint
+                forbiddenEntryPoint,
+                appData
         );
     }
 

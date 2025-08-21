@@ -38,6 +38,14 @@ public class ApplicationDataComponent {
                 .toArray(String[]::new);
     }
 
+    public String[] glueEndpoints(List<String> paths) {
+        return paths.stream()
+                .filter(Objects::nonNull)
+                .map(path -> path.trim().replaceAll("/+$", ""))
+                .map(path -> "/api/v" + version + path)
+                .toArray(String[]::new);
+    }
+
 
     private List<Map<String, String>> initTechnologies() {
         List<Map<String, String>> techList = new ArrayList<>();

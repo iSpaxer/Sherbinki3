@@ -33,7 +33,7 @@ public class CustomAuthenticationConverter implements AuthenticationConverter {
         Map<String, String> jsonMap = objectMapper.readValue(jsonStringBuilder.toString(), Map.class);
 
         // Получение значений из Map
-        var email = jsonMap.get("username");
+        var email = jsonMap.get("email");
         var password = jsonMap.get("password");
 
         if (email == null || email.isEmpty() || password == null || password.isEmpty()) {

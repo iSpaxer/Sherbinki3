@@ -1,43 +1,38 @@
 package ru.stm.shcherbinki3.config;
 
-import org.springframework.http.HttpStatus;
-import ru.stm.shcherbinki3.dto.jwt.JwtToken;
-import ru.stm.shcherbinki3.security.JwtAuthenticationUserDetailsService;
-import ru.stm.shcherbinki3.security.JwtUserDetailsService;
-import ru.stm.shcherbinki3.security.converter.AccessJwtAuthenticationConverter;
-import ru.stm.shcherbinki3.security.filter.JwtExceptionHandlerFilter;
-import ru.stm.shcherbinki3.security.filter.JwtLoginFilter;
-import ru.stm.shcherbinki3.security.filter.JwtLogoutFilter;
-import ru.stm.shcherbinki3.security.filter.JwtRefreshFilter;
-import ru.stm.shcherbinki3.security.jwt.factory.AuthenticationJwtResponseMapper;
-import ru.stm.shcherbinki3.service.JwtRedisService;
-import ru.stm.shcherbinki3.util.ApplicationDataComponent;
-import ru.stm.shcherbinki3.util.exception.ErrorResponse;
-import ru.stm.shcherbinki3.util.exception.entrypoint.ForbiddenEntryPoint;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.AuthenticationFilter;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.servlet.HandlerExceptionResolver;
+import ru.stm.shcherbinki3.dto.jwt.JwtToken;
+import ru.stm.shcherbinki3.security.JwtAuthenticationUserDetailsService;
+import ru.stm.shcherbinki3.security.JwtUserDetailsService;
+import ru.stm.shcherbinki3.security.converter.AccessJwtAuthenticationConverter;
+import ru.stm.shcherbinki3.security.filter.*;
+import ru.stm.shcherbinki3.security.jwt.factory.AuthenticationJwtResponseMapper;
+import ru.stm.shcherbinki3.service.JwtRedisService;
+import ru.stm.shcherbinki3.util.ApplicationDataComponent;
+import ru.stm.shcherbinki3.util.exception.entrypoint.ForbiddenEntryPoint;
 
-import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * Конфигурация JWT фильтров для Spring Security
  */
-@RequiredArgsConstructor
 public class JwtAuthenticationConfigurer extends AbstractHttpConfigurer<JwtAuthenticationConfigurer, HttpSecurity> {
     private final JwtUserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
@@ -60,6 +55,45 @@ public class JwtAuthenticationConfigurer extends AbstractHttpConfigurer<JwtAuthe
     private final JwtRedisService jwtRedisService;
     private final ForbiddenEntryPoint forbiddenEntryPoint;
 
+
+    private final RequestMatcher publicEndpoints;
+
+    public JwtAuthenticationConfigurer(JwtUserDetailsService userDetailsService, PasswordEncoder passwordEncoder,
+                                       Function<Authentication, JwtToken> jwtRefreshFactory,
+                                       Function<JwtToken, JwtToken> jwtAccessFactory,
+                                       Function<JwtToken, String> accessTokenSerializer,
+                                       Function<JwtToken, String> refreshTokenSerializer,
+                                       Function<String, JwtToken> accessTokenDeserializer,
+                                       Function<String, JwtToken> refreshTokenDeserializer,
+                                       HandlerExceptionResolver handlerExceptionResolver, ObjectMapper objectMapper,
+                                       ApplicationDataComponent dataComponent,
+                                       AuthenticationJwtResponseMapper authenticationJwtResponseMapper,
+                                       JwtRedisService jwtRedisService, ForbiddenEntryPoint forbiddenEntryPoint,
+                                       ApplicationDataComponent addData) {
+        this.userDetailsService = userDetailsService;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtRefreshFactory = jwtRefreshFactory;
+        this.jwtAccessFactory = jwtAccessFactory;
+        this.accessTokenSerializer = accessTokenSerializer;
+        this.refreshTokenSerializer = refreshTokenSerializer;
+        this.accessTokenDeserializer = accessTokenDeserializer;
+        this.refreshTokenDeserializer = refreshTokenDeserializer;
+        this.handlerExceptionResolver = handlerExceptionResolver;
+        this.objectMapper = objectMapper;
+        this.dataComponent = dataComponent;
+        this.authenticationJwtResponseMapper = authenticationJwtResponseMapper;
+        this.jwtRedisService = jwtRedisService;
+        this.forbiddenEntryPoint = forbiddenEntryPoint;
+
+        this.publicEndpoints =new OrRequestMatcher(
+                Stream.concat(
+                        Arrays.stream(addData.glueEndpoints(SecurityConfig.PUBLIC_API_VERSION))
+                                .map(AntPathRequestMatcher::new),
+                        Arrays.stream(SecurityConfig.PUBLIC_API)
+                                .map(AntPathRequestMatcher::new) // Добавляем /api/info
+                ).toArray(RequestMatcher[]::new));
+    }
+
     @Override
     public void configure(HttpSecurity http) throws Exception {
         var daoAuthenticationProvider = new DaoAuthenticationProvider();
@@ -80,26 +114,12 @@ public class JwtAuthenticationConfigurer extends AbstractHttpConfigurer<JwtAuthe
                 refreshTokenSerializer,
                 jwtRedisService);
 
-        var jwtAuthenticationFilter = new AuthenticationFilter(
+        var jwtAuthenticationFilter = new JwtAuthenticationFilter(
                 http.getSharedObject(AuthenticationManager.class),
-                new AccessJwtAuthenticationConverter(accessTokenDeserializer, refreshTokenDeserializer, jwtRedisService)
+                new AccessJwtAuthenticationConverter(accessTokenDeserializer, refreshTokenDeserializer, jwtRedisService),
+                publicEndpoints
         );
 
-        jwtAuthenticationFilter
-                .setFailureHandler((request, response, e) -> {
-                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                    response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-                    response.getWriter().write(objectMapper.writeValueAsString(new ErrorResponse(
-                            HttpStatus.BAD_REQUEST.value(),
-                            HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                            e.getMessage() != null ? e.getMessage() : "Invalid request",
-                            request.getRequestURI())));
-                });
-        jwtAuthenticationFilter
-                .setSuccessHandler((request, response, authentication) -> {
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                });
 
 
         var authenticationProvider = new PreAuthenticatedAuthenticationProvider();
