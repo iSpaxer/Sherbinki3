@@ -1,10 +1,10 @@
 package ru.stm.shcherbinki3.service;
 
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
 import ru.stm.shcherbinki3.dto.jwt.JwtToken;
 import ru.stm.shcherbinki3.model.redis.AccountInfo;
 import ru.stm.shcherbinki3.util.exception.BadRequestException;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;

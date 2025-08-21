@@ -12,4 +12,5 @@ public class DatasourceConfig {
     public JdbcTemplate jdbcTemplate(HikariDataSource hikariDataSource) {
         return new JdbcTemplate(hikariDataSource);
     }
+
 }

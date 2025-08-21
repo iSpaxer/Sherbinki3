@@ -190,8 +190,9 @@ public class CarrierManagementRestController {
             @Parameter(description = "Route data", required = true)
             RouteWithCarrierDto dto
     ) {
-        return ResponseEntity.created(URI.create("/api/v1/route/" + routeService.create(defaultAuthenticationPrincipal.getId(), dto)))
-                .build();
+        return ResponseEntity.created(
+                URI.create("/api/v" + version + "/route/" + routeService.create(defaultAuthenticationPrincipal.getId(), dto))
+        ).build();
     }
 
     @Operation(

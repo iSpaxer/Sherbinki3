@@ -194,6 +194,7 @@ public class UserRestController {
 
     @GetMapping("/tickets")
     @ResponseStatus(HttpStatus.OK)
+
     @Operation(
             summary = "Get purchased tickets by user by JWT with pagination",
             description = "Retrieves a paginated list of purchased tickets for the specified user with JWT. Supports optional date filters to narrow down results by ticket creation or travel date. Pagination is controlled via page and size parameters, with optional sorting.",

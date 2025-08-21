@@ -2,6 +2,8 @@ package ru.stm.shcherbinki3.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.stm.shcherbinki3.dao.TicketDao;
@@ -53,6 +55,8 @@ public class TicketService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "userTickets", key = "#userId + '::' + #after + '::' + #before + '::' + #pageable.offset + " +
+            "'::' + #pageable.size + '::' + #pageable.sortBy + '::' + #pageable.direction")
     public PageResponse<TicketPurchasedDto> getTicketsByUser(Long userId, LocalDate after, LocalDate before, Pageable pageable) {
         List<Ticket> ticketList = ticketDao.findAllByUserId(userId, after, before, pageable);
         long total = ticketDao.countByParameters(userId, after, before, pageable);
@@ -61,6 +65,7 @@ public class TicketService {
     }
 
     @Transactional
+    @CacheEvict(value = "userTickets", key = "#userId", allEntries = true)
     public void buyTicket(Long userId, Long ticketId) {
         if (!ticketDao.existsById(ticketId)) {
             log.error("Failed to buy ticket: ticketId={} not found", ticketId);
@@ -79,6 +84,7 @@ public class TicketService {
     }
 
     @Transactional
+    @CacheEvict(value = "userTickets", key = "#userId", allEntries = true)
     public void returnTicket(Long userId, Long ticketId) {
         if (!ticketDao.existsById(ticketId)) {
             log.error("Failed to return ticket: ticketId={} not found", ticketId);

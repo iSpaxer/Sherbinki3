@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.stm.shcherbinki3.util.validition.ValidCorrectionTicketsLimit;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -20,7 +21,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @ValidCorrectionTicketsLimit
-public class TicketCreateDto {
+public class TicketCreateDto implements Serializable {
 
     @Min(1)
     private Integer quantityOfPlaces;
