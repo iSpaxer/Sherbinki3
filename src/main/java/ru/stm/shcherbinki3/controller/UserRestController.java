@@ -66,14 +66,14 @@ public class UserRestController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     @Operation(
-            summary = "Get user by ID",
-            description = "Retrieves user details by their ID.",
+            summary = "Get authenticated user ",
+            description = "Retrieves user details by their JWT.",
             security = {@SecurityRequirement(name = "JWT")}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User successfully retrieved",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDto.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid user ID",
+            @ApiResponse(responseCode = "400", description = "Invalid user",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "User not found",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
@@ -96,7 +96,7 @@ public class UserRestController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User successfully updated",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDto.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid user data or ID mismatch",
+            @ApiResponse(responseCode = "400", description = "Invalid user",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "User not found",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
@@ -117,14 +117,14 @@ public class UserRestController {
     @DeleteMapping
     @ResponseStatus(HttpStatus.OK)
     @Operation(
-            summary = "Delete a user by ID",
-            description = "Deletes the user with the specified ID. Returns a confirmation message.",
+            summary = "Delete authenticated user",
+            description = "Deletes the user by JWT. Returns a confirmation message.",
             security = {@SecurityRequirement(name = "JWT")}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User successfully deleted",
                     content = @Content(mediaType = "text/plain", schema = @Schema(type = "string", example = "Account would have been deleted"))),
-            @ApiResponse(responseCode = "400", description = "Invalid user ID",
+            @ApiResponse(responseCode = "400", description = "Invalid user",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "403", description = "Access denied",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
@@ -144,12 +144,12 @@ public class UserRestController {
     @ResponseStatus(HttpStatus.OK)
     @Operation(
             summary = "Restore a deleted user account",
-            description = "Restores a previously deleted user account and, if applicable, their associated carrier. The user ID must be provided in the request body. Returns a confirmation message upon success."
+            description = "Restores a previously deleted user account and, if applicable, their associated carrier. Returns a confirmation message upon success."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User account successfully restored",
                     content = @Content(mediaType = "text/plain", schema = @Schema(type = "string", example = "Account would have been restored"))),
-            @ApiResponse(responseCode = "400", description = "Invalid user ID",
+            @ApiResponse(responseCode = "400", description = "Invalid user",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "403", description = "Access denied",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
@@ -168,14 +168,14 @@ public class UserRestController {
     @GetMapping("/carrier")
     @ResponseStatus(HttpStatus.OK)
     @Operation(
-            summary = "Get carrier with routes by user ID",
-            description = "Retrieves the carrier associated with the specified user ID, along with all its routes. Returns a CarrierWithRoutesDto containing carrier details and a list of routes.",
+            summary = "Get carrier with routes by user by JWT",
+            description = "Retrieves the carrier associated by JWT, along with all its routes. Returns a CarrierWithRoutesDto containing carrier details and a list of routes.",
             security = {@SecurityRequirement(name = "JWT")}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Carrier and routes successfully retrieved",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = CarrierWithRoutesDto.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid user ID",
+            @ApiResponse(responseCode = "400", description = "Invalid user ",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "User or carrier not found",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
@@ -191,14 +191,14 @@ public class UserRestController {
     @GetMapping("/tickets")
     @ResponseStatus(HttpStatus.OK)
     @Operation(
-            summary = "Get purchased tickets by user ID with pagination",
-            description = "Retrieves a paginated list of purchased tickets for the specified user ID. Supports optional date filters to narrow down results by ticket creation or travel date. Pagination is controlled via page and size parameters, with optional sorting.",
+            summary = "Get purchased tickets by user by JWT with pagination",
+            description = "Retrieves a paginated list of purchased tickets for the specified user with JWT. Supports optional date filters to narrow down results by ticket creation or travel date. Pagination is controlled via page and size parameters, with optional sorting.",
             security = {@SecurityRequirement(name = "JWT")}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "List of purchased tickets successfully retrieved",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = PageResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid user ID or pagination parameters",
+            @ApiResponse(responseCode = "400", description = "Invalid user or pagination parameters",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "User or tickets not found",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
