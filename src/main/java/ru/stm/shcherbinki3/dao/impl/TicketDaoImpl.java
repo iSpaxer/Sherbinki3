@@ -146,8 +146,6 @@ public class TicketDaoImpl implements TicketDao {
                 .addDateRangeFilter(after, before, "t.departure_datetime")
                 .addPagination(pageable, "t", ALLOWED_SORT_COLUMNS);
 
-        System.out.println(builder);
-
         return namedParameterJdbcTemplate.query(
                 builder.getSql(),
                 builder.getParams(),
