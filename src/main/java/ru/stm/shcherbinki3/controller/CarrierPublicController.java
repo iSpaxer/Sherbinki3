@@ -24,7 +24,7 @@ import java.time.LocalDate;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/")
+@RequestMapping("/api" + "/v${app.version}/")
 @Tag(name = "Public Carrier API", description = "API for retrieving public routes and tickets")
 public class CarrierPublicController {
 
@@ -107,7 +107,6 @@ public class CarrierPublicController {
             @Parameter(description = "Date of departure (format: YYYY-MM-DD), must be today or in the future (optional)",
                     schema = @Schema(type = "string", format = "date", example = "2025-08-20"))
             LocalDate date,
-            @Parameter(description = "Pagination and sorting parameters (page, size, sort)", required = true)
             Pageable pageable
     ) {
         return ResponseEntity.ok(ticketService.getTickets(routeId, date, pageable));

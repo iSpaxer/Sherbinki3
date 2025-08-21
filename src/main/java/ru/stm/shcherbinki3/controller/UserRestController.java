@@ -6,15 +6,20 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import ru.stm.shcherbinki3.dto.LoginRequest;
 import ru.stm.shcherbinki3.dto.UserDto;
 import ru.stm.shcherbinki3.dto.carrier.CarrierWithRoutesDto;
 import ru.stm.shcherbinki3.dto.ticket.TicketPurchasedDto;
+import ru.stm.shcherbinki3.security.DefaultAuthenticationPrincipal;
 import ru.stm.shcherbinki3.service.CarrierManagementService;
 import ru.stm.shcherbinki3.service.CarrierService;
 import ru.stm.shcherbinki3.service.TicketService;
@@ -27,7 +32,7 @@ import java.net.URI;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/api/v1/user")
+@RequestMapping("/api" + "/v${app.version}/user")
 @RequiredArgsConstructor
 @Tag(name = "User API", description = "API for managing users")
 public class UserRestController {
@@ -36,6 +41,9 @@ public class UserRestController {
     private final TicketService ticketService;
     private final CarrierService carrierService;
     private final CarrierManagementService carrierManagementService;
+
+    @Value("${app.version}")
+    private String version;
 
     @PostMapping("/create")
     @ResponseStatus(HttpStatus.CREATED)
@@ -55,20 +63,21 @@ public class UserRestController {
     })
     public ResponseEntity<?> createUser(@Valid @RequestBody UserDto dto) {
         return ResponseEntity
-                .created(URI.create("/api/v1/user/" + userService.create(dto)))
+                .created(URI.create("/api/" + version + "/user/" + userService.create(dto)))
                 .build();
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     @Operation(
-            summary = "Get user by ID",
-            description = "Retrieves user details by their ID."
+            summary = "Get authenticated user ",
+            description = "Retrieves user details by their JWT.",
+            security = {@SecurityRequirement(name = "JWT")}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User successfully retrieved",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDto.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid user ID",
+            @ApiResponse(responseCode = "400", description = "Invalid user",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "User not found",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
@@ -76,23 +85,22 @@ public class UserRestController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<UserDto> getUser(
-            @RequestParam
-            @Parameter(description = "ID of the user to retrieve", required = true, example = "1")
-            Long id
+            @AuthenticationPrincipal DefaultAuthenticationPrincipal defaultAuthenticationPrincipal
     ) {
-        return ResponseEntity.ok(userService.getById(id));
+        return ResponseEntity.ok(userService.getById(defaultAuthenticationPrincipal.getId()));
     }
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
     @Operation(
             summary = "Update an existing user's information",
-            description = "Updates the details of an existing user. All updatable fields must be provided."
+            description = "Updates the details of an existing user. All updatable fields must be provided.",
+            security = {@SecurityRequirement(name = "JWT")}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User successfully updated",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDto.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid user data or ID mismatch",
+            @ApiResponse(responseCode = "400", description = "Invalid user",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "User not found",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
@@ -102,26 +110,25 @@ public class UserRestController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<UserDto> updateUser(
-            @RequestParam
-            @Parameter(description = "ID of the user to update", required = true, example = "1")
-            Long id,
+            @AuthenticationPrincipal DefaultAuthenticationPrincipal defaultAuthenticationPrincipal,
             @Valid @RequestBody
             @Parameter(description = "Updated user data", required = true)
             UserDto dto
     ) {
-        return ResponseEntity.ok(userService.update(id, dto));
+        return ResponseEntity.ok(userService.update(defaultAuthenticationPrincipal, dto));
     }
 
     @DeleteMapping
     @ResponseStatus(HttpStatus.OK)
     @Operation(
-            summary = "Delete a user by ID",
-            description = "Deletes the user with the specified ID. Returns a confirmation message."
+            summary = "Delete authenticated user",
+            description = "Deletes the user by JWT. Returns a confirmation message.",
+            security = {@SecurityRequirement(name = "JWT")}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User successfully deleted",
                     content = @Content(mediaType = "text/plain", schema = @Schema(type = "string", example = "Account would have been deleted"))),
-            @ApiResponse(responseCode = "400", description = "Invalid user ID",
+            @ApiResponse(responseCode = "400", description = "Invalid user",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "403", description = "Access denied",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
@@ -131,11 +138,9 @@ public class UserRestController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<String> deleteUser(
-            @RequestParam
-            @Parameter(description = "ID of the user to delete", required = true, example = "1")
-            Long id
+            @AuthenticationPrincipal DefaultAuthenticationPrincipal defaultAuthenticationPrincipal
     ) {
-        carrierManagementService.deleteUserAndCarrier(id);
+        carrierManagementService.deleteUserAndCarrier(defaultAuthenticationPrincipal.getId());
         return ResponseEntity.ok("Account would have been deleted");
     }
 
@@ -143,12 +148,12 @@ public class UserRestController {
     @ResponseStatus(HttpStatus.OK)
     @Operation(
             summary = "Restore a deleted user account",
-            description = "Restores a previously deleted user account and, if applicable, their associated carrier. The user ID must be provided in the request body. Returns a confirmation message upon success."
+            description = "Restores a previously deleted user account and, if applicable, their associated carrier. Returns a confirmation message upon success."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User account successfully restored",
                     content = @Content(mediaType = "text/plain", schema = @Schema(type = "string", example = "Account would have been restored"))),
-            @ApiResponse(responseCode = "400", description = "Invalid user ID",
+            @ApiResponse(responseCode = "400", description = "Invalid user",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "403", description = "Access denied",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
@@ -158,24 +163,23 @@ public class UserRestController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<String> restoreUser(
-            @RequestBody
-            @Parameter(description = "ID of the user to restore", required = true, example = "1")
-            Long id
+            @RequestBody LoginRequest dto
     ) {
-        carrierManagementService.restoreUserAndCarrier(id);
+        carrierManagementService.restoreUserAndCarrier(dto);
         return ResponseEntity.ok("Account would have been restored");
     }
 
     @GetMapping("/carrier")
     @ResponseStatus(HttpStatus.OK)
     @Operation(
-            summary = "Get carrier with routes by user ID",
-            description = "Retrieves the carrier associated with the specified user ID, along with all its routes. Returns a CarrierWithRoutesDto containing carrier details and a list of routes."
+            summary = "Get carrier with routes by user by JWT",
+            description = "Retrieves the carrier associated by JWT, along with all its routes. Returns a CarrierWithRoutesDto containing carrier details and a list of routes.",
+            security = {@SecurityRequirement(name = "JWT")}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Carrier and routes successfully retrieved",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = CarrierWithRoutesDto.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid user ID",
+            @ApiResponse(responseCode = "400", description = "Invalid user ",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "User or carrier not found",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
@@ -183,23 +187,22 @@ public class UserRestController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<CarrierWithRoutesDto> getCarrier(
-            @RequestParam
-            @Parameter(description = "ID of the user whose carrier is to be retrieved", required = true, example = "1")
-            Long userId
+            @AuthenticationPrincipal DefaultAuthenticationPrincipal defaultAuthenticationPrincipal
     ) {
-        return ResponseEntity.ok(carrierService.getByUserId(userId));
+        return ResponseEntity.ok(carrierService.getByUserId(defaultAuthenticationPrincipal.getId()));
     }
 
     @GetMapping("/tickets")
     @ResponseStatus(HttpStatus.OK)
     @Operation(
-            summary = "Get purchased tickets by user ID with pagination",
-            description = "Retrieves a paginated list of purchased tickets for the specified user ID. Supports optional date filters to narrow down results by ticket creation or travel date. Pagination is controlled via page and size parameters, with optional sorting."
+            summary = "Get purchased tickets by user by JWT with pagination",
+            description = "Retrieves a paginated list of purchased tickets for the specified user with JWT. Supports optional date filters to narrow down results by ticket creation or travel date. Pagination is controlled via page and size parameters, with optional sorting.",
+            security = {@SecurityRequirement(name = "JWT")}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "List of purchased tickets successfully retrieved",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = PageResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid user ID or pagination parameters",
+            @ApiResponse(responseCode = "400", description = "Invalid user or pagination parameters",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "User or tickets not found",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
@@ -207,18 +210,15 @@ public class UserRestController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<PageResponse<TicketPurchasedDto>> getTickets(
-            @RequestParam
-            @Parameter(description = "ID of the user whose tickets are to be retrieved", required = true, example = "1")
-            Long userId,
+            @AuthenticationPrincipal DefaultAuthenticationPrincipal defaultAuthenticationPrincipal,
             @RequestParam(required = false)
             @Parameter(description = "Filter tickets created or traveled after this date (format: YYYY-MM-DD)", schema = @Schema(type = "string", format = "date", example = "2025-07-19"))
             LocalDate after,
             @RequestParam(required = false)
             @Parameter(description = "Filter tickets created or traveled before this date (format: YYYY-MM-DD)", schema = @Schema(type = "string", format = "date", example = "2025-08-19"))
             LocalDate before,
-            @Parameter(description = "Pagination and sorting parameters", example = "{\"page\": 0, \"size\": 10, \"sort\": \"id,asc\"}")
             Pageable pageable
     ) {
-        return ResponseEntity.ok(ticketService.getTicketsByUser(userId, after, before, pageable));
+        return ResponseEntity.ok(ticketService.getTicketsByUser(defaultAuthenticationPrincipal.getId(), after, before, pageable));
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import ru.stm.shcherbinki3.util.exception.BadRequestException;
 import ru.stm.shcherbinki3.util.exception.ErrorResponse;
 import ru.stm.shcherbinki3.util.exception.ForbiddenException;
@@ -18,12 +19,14 @@ import ru.stm.shcherbinki3.util.exception.business.BusinessException;
 import ru.stm.shcherbinki3.util.exception.business.DuplicateEmailException;
 import ru.stm.shcherbinki3.util.exception.business.EmailUsedByDeletedUserException;
 
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex, HttpServletRequest request) {
         HttpStatus status = ex.getStatus() != null ? ex.getStatus() : HttpStatus.BAD_REQUEST;
         ErrorResponse errorResponse = new ErrorResponse(
@@ -157,6 +160,29 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
         log.error("HttpMessageNotReadableException: message={}, path={}", ex.getMessage(), request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(errorResponse);
+    }
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ErrorResponse> handleHandlerMethodValidationException(HandlerMethodValidationException ex,
+                                                                                HttpServletRequest request) {
+        String errorMessage = ex.getAllErrors().stream()
+                .map(error -> {
+                    if (error instanceof org.springframework.validation.FieldError fieldError) {
+                        return fieldError.getField() + ": " + fieldError.getDefaultMessage();
+                    }
+                    return error.getDefaultMessage();
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining("; "));
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                errorMessage.isEmpty() ? "Validation failure" : errorMessage,
+                request.getRequestURI()
+        );
+        log.error("HandlerMethodValidationException: message={}, path={}", errorMessage, request.getRequestURI());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(errorResponse);
     }
