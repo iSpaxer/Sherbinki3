@@ -19,6 +19,7 @@ import ru.stm.shcherbinki3.util.exception.business.BusinessException;
 import ru.stm.shcherbinki3.util.exception.business.DuplicateEmailException;
 import ru.stm.shcherbinki3.util.exception.business.EmailUsedByDeletedUserException;
 
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -172,7 +173,7 @@ public class GlobalExceptionHandler {
                     }
                     return error.getDefaultMessage();
                 })
-                .filter(message -> message != null)
+                .filter(Objects::nonNull)
                 .collect(Collectors.joining("; "));
 
         ErrorResponse errorResponse = new ErrorResponse(

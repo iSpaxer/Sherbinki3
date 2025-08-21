@@ -6,19 +6,23 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.stm.shcherbinki3.security.DefaultAuthenticationPrincipal;
 import ru.stm.shcherbinki3.service.TicketService;
 import ru.stm.shcherbinki3.util.exception.ErrorResponse;
 
 @RestController
 @RequiredArgsConstructor
+@SecurityRequirement(name = "JWT")
 @RequestMapping("/api" + "/v${app.version}/ticket")
 @Tag(name = "Ticket Management API", description = "API for purchasing and returning tickets")
 public class TicketRestController {
@@ -48,15 +52,13 @@ public class TicketRestController {
     })
     @PostMapping("/buy")
     public ResponseEntity<String> buyTicket(
-            @RequestParam
-            @Positive(message = "User ID must be a positive number")
-            @Parameter(description = "ID of the user purchasing the ticket", required = true, example = "1")
-            Long userId,
+            @AuthenticationPrincipal DefaultAuthenticationPrincipal defaultAuthenticationPrincipal,
             @RequestParam
             @Positive(message = "Ticket ID must be a positive number")
             @Parameter(description = "ID of the ticket to purchase", required = true, example = "1")
-            Long ticketId) {
-        ticketService.buyTicket(userId, ticketId);
+            Long ticketId
+    ) {
+        ticketService.buyTicket(defaultAuthenticationPrincipal.getId(), ticketId);
         return ResponseEntity.ok("Ticket %d has been purchased".formatted(ticketId));
     }
 
@@ -84,15 +86,12 @@ public class TicketRestController {
     })
     @PostMapping("/return")
     public ResponseEntity<String> returnTicket(
-            @RequestParam
-            @Positive(message = "User ID must be a positive number")
-            @Parameter(description = "ID of the user returning the ticket", required = true, example = "1")
-            Long userId,
+            @AuthenticationPrincipal DefaultAuthenticationPrincipal defaultAuthenticationPrincipal,
             @RequestParam
             @Positive(message = "Ticket ID must be a positive number")
             @Parameter(description = "ID of the ticket to return", required = true, example = "1")
             Long ticketId) {
-        ticketService.returnTicket(userId, ticketId);
+        ticketService.returnTicket(defaultAuthenticationPrincipal.getId(), ticketId);
         return ResponseEntity.ok("Ticket %d has been returned".formatted(ticketId));
     }
 }

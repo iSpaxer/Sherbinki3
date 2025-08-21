@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -41,6 +42,9 @@ public class UserRestController {
     private final CarrierService carrierService;
     private final CarrierManagementService carrierManagementService;
 
+    @Value("${app.version}")
+    private String version;
+
     @PostMapping("/create")
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(
@@ -59,7 +63,7 @@ public class UserRestController {
     })
     public ResponseEntity<?> createUser(@Valid @RequestBody UserDto dto) {
         return ResponseEntity
-                .created(URI.create("/api/v1/user/" + userService.create(dto)))
+                .created(URI.create("/api/" + version + "/user/" + userService.create(dto)))
                 .build();
     }
 
