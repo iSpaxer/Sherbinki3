@@ -13,6 +13,8 @@ services:
       - 8080:8080
     depends_on:
       - postgres
+      - redis
+      - cache-redis
 
   postgres:
     image: postgres:16.1
