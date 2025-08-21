@@ -1,22 +1,18 @@
 package ru.stm.shcherbinki3.config;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import ru.stm.shcherbinki3.security.jwt.factory.AuthenticationJwtResponseMapper;
-import ru.stm.shcherbinki3.util.ApplicationDataComponent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import ru.stm.shcherbinki3.security.jwt.factory.AuthenticationJwtResponseMapper;
+import ru.stm.shcherbinki3.util.ApplicationDataComponent;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
