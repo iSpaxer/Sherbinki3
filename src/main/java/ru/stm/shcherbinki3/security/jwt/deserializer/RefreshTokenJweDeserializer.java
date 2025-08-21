@@ -1,5 +1,6 @@
 package ru.stm.shcherbinki3.security.jwt.deserializer;
 
+import org.springframework.security.authentication.BadCredentialsException;
 import ru.stm.shcherbinki3.dto.jwt.JwtToken;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEDecrypter;
@@ -30,7 +31,7 @@ public class RefreshTokenJweDeserializer implements Function<String, JwtToken> {
                     claimsSet.getIssueTime().toInstant(),
                     claimsSet.getExpirationTime().toInstant());
         } catch (ParseException | JOSEException exception) {
-            throw new JsonParseException("Refresh токен не десериализуем");
+            throw new BadCredentialsException("Refresh токен не десериализуем");
         }
     }
 }

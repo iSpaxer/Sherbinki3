@@ -1,5 +1,6 @@
 package ru.stm.shcherbinki3.security.jwt.deserializer;
 
+import org.springframework.security.authentication.BadCredentialsException;
 import ru.stm.shcherbinki3.dto.jwt.JwtToken;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -39,7 +40,7 @@ public class AccessTokenJwsDeserializer implements Function<String, JwtToken> {
                 );
             }
         } catch (ParseException | JOSEException e) {
-            throw new RuntimeException(e);
+            throw new BadCredentialsException(e.getMessage());
         }
         return null;
     }
