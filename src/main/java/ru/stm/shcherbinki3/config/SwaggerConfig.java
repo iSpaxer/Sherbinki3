@@ -27,9 +27,20 @@ public class SwaggerConfig {
 
 
     @Bean
-    public OpenAPI customOpenAPI() {
+    public OpenAPI customOpenAPI(ApplicationDataComponent dataComponent) {
         return new OpenAPI()
-                .info(new Info().title("Your API").version("1.0.0"))
+                .info(new Info()
+                              .title("Your API")
+                              .version(dataComponent.getVersion())
+                              .description("""
+                                                   Документация API для проекта Shcherbinki3
+                                                   
+                                                   Контакты:
+                                                   - Email: a.v.sybahcin@mail.ru
+                                                   - Telegram: [@ispaxer](https://t.me/ispaxer)
+                                                   - GitHub: [github.com/ispaxer](https://github.com/ispaxer)
+                                                   """)
+                )
                 .components(new Components()
                                     // JWT
                                     .addSecuritySchemes("JWT", new SecurityScheme()
@@ -43,7 +54,8 @@ public class SwaggerConfig {
         GroupedOpenApi.Builder builder = GroupedOpenApi.builder();
         builder.group("Common panel");
         builder.addOpenApiCustomizer(openApi -> {
-            ModelConverters.getInstance().read(LoginRequest.class)
+            ModelConverters.getInstance()
+                    .read(LoginRequest.class)
                     .forEach(openApi.getComponents()::addSchemas);
 
             openApi
@@ -128,7 +140,6 @@ public class SwaggerConfig {
                     );
         });
         builder.packagesToScan("ru.stm.shcherbinki3.controller");
-        builder.addOpenApiCustomizer(openApi -> openApi.info(new Info().title("Admins API").version("1.0.0")));
         return builder
                 .build();
     }
